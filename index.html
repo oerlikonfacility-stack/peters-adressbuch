@@ -155,6 +155,16 @@ $("photoFile").value = "";
 $("photoPreview").style.display = "none";
 $("photoPreview").removeAttribute("src");
  fields.forEach(k=>$(k).value="");
+ currentPhoto = c.photo || "";
+$("photoFile").value = "";
+
+if (currentPhoto) {
+  $("photoPreview").src = currentPhoto;
+  $("photoPreview").style.display = "block";
+} else {
+  $("photoPreview").removeAttribute("src");
+  $("photoPreview").style.display = "none";
+}
  $("editor").style.display="block";
  $("name").focus();
 }
