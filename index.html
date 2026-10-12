@@ -46,6 +46,12 @@ small{color:#667581}
 <h2 id="formTitle">Neuer Kontakt</h2>
 <input id="id" type="hidden">
 <label>Name *</label><input id="name" placeholder="Vor- und Nachname">
+ 
+<label>Kontaktfoto</label>
+<input id="photoFile" type="file" accept="image/*">
+<img id="photoPreview" alt="Kontaktfoto" style="display:none;width:90px;height:90px;object-fit:cover;border-radius:50%;margin:8px 0">
+<button type="button" class="secondary" onclick="removePhoto()">Foto entfernen</button>
+
 <label>Firma</label><input id="company" placeholder="Firma">
 <label>Telefon</label><input id="phone" type="tel" placeholder="+49 …">
 <label>E-Mail</label><input id="email" type="email" placeholder="E-Mail-Adresse">
