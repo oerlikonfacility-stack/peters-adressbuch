@@ -150,6 +150,10 @@ function render(){
 function newContact(){
  $("formTitle").textContent="Neuer Kontakt";
  $("id").value="";
+ currentPhoto = "";
+$("photoFile").value = "";
+$("photoPreview").style.display = "none";
+$("photoPreview").removeAttribute("src");
  fields.forEach(k=>$(k).value="");
  $("editor").style.display="block";
  $("name").focus();
