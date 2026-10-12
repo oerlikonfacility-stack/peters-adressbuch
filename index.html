@@ -5,6 +5,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="theme-color" content="#17324d">
+ <link rel="manifest" href="manifest.webmanifest">
 <title>Peters Adressbuch</title>
 <style>
 *{box-sizing:border-box}
@@ -207,6 +208,13 @@ async function importFile(event){
 }
 $("search").addEventListener("input",render);
 render();
+
+if ("serviceWorker" in navigator) {
+  window.addEventListener("load", () => {
+    navigator.serviceWorker.register("./sw.js")
+      .catch(error => console.error("Offline-Modus:", error));
+  });
+}
 </script>
 </body>
 </html>
