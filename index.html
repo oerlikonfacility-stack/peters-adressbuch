@@ -74,6 +74,43 @@ small{color:#667581}
 const $=id=>document.getElementById(id);
 const fields=["name","company","phone","email","street","postcode","city","notes"];
 let contacts=[];
+ 
+let currentPhoto = "";
+
+$("photoFile").addEventListener("change", function() {
+  const file = this.files[0];
+  if (!file) return;
+
+  if (!file.type.startsWith("image/")) {
+    alert("Bitte eine Bilddatei auswählen.");
+    this.value = "";
+    return;
+  }
+
+  if (file.size > 3 * 1024 * 1024) {
+    alert("Bitte ein Foto mit maximal 3 MB auswählen.");
+    this.value = "";
+    return;
+  }
+
+  const reader = new FileReader();
+
+  reader.onload = function() {
+    currentPhoto = reader.result;
+    $("photoPreview").src = currentPhoto;
+    $("photoPreview").style.display = "block";
+  };
+
+  reader.readAsDataURL(file);
+});
+
+function removePhoto() {
+  currentPhoto = "";
+  $("photoFile").value = "";
+  $("photoPreview").removeAttribute("src");
+  $("photoPreview").style.display = "none";
+}
+
 try{contacts=JSON.parse(localStorage.getItem("petersKontakte")||"[]")}
 catch(e){contacts=[]}
 
