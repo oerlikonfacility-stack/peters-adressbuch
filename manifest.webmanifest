@@ -1,0 +1,12 @@
+
+{
+  "name": "Peters Adressbuch",
+  "short_name": "Adressbuch",
+  "description": "Mein privates Adressbuch",
+  "lang": "de-DE",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#f1f4f7",
+  "theme_color": "#17324d"
+}
