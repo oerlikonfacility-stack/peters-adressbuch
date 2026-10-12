@@ -19,6 +19,7 @@ button:disabled{opacity:.6;cursor:wait}
 button.secondary{background:#e0e8ef;color:#17324d}
 .card{background:white;border:1px solid #dce3e9;border-radius:13px;padding:14px;margin:10px 0;overflow:auto}
 .name{font-size:19px;font-weight:bold}
+.card p{overflow-wrap:anywhere}
 .actions{display:flex;flex-wrap:wrap;gap:4px;margin-top:10px}
 .actions button{flex:1}
 small{color:#667581}
@@ -404,6 +405,39 @@ function backup() {
   setTimeout(() => URL.revokeObjectURL(url), 1000);
 }
 
+/* ---------- Foto-Links aus Notizen entfernen ---------- */
+
+// Entfernt Zeilen wie "Photo: https://lh3.googleusercontent.com/..." aus den Notizen
+function cleanNotes(text) {
+  return String(text || "")
+    .split(/\r?\n/)
+    .filter(line => {
+      const l = line.trim();
+      if (/^(photo|foto)\s*:\s*https?:\/\/\S+$/i.test(l)) return false;
+      if (/googleusercontent\.com\/contacts\//i.test(l)) return false;
+      return true;
+    })
+    .join("\n")
+    .replace(/\n{3,}/g, "\n\n")
+    .trim();
+}
+
+// Bereits importierte Kontakte einmalig aufräumen
+function cleanStoredNotes() {
+  let changed = false;
+  contacts.forEach(contact => {
+    if (!contact.notes) return;
+    const cleaned = cleanNotes(contact.notes);
+    if (cleaned !== contact.notes) {
+      contact.notes = cleaned;
+      changed = true;
+    }
+  });
+  if (changed) {
+    try { localStorage.setItem(STORAGE_KEY, JSON.stringify(contacts)); } catch (error) {}
+  }
+}
+
 /* ---------- CSV (Google Kontakte) ---------- */
 
 // Text aus Datei lesen: UTF-8 (mit/ohne BOM), UTF-16 oder Windows-1252
@@ -567,7 +601,7 @@ function csvToContacts(text) {
 
     // Notizen
     const notes = [];
-    const baseNotes = pick(["notes","notizen"]);
+    const baseNotes = cleanNotes(pick(["notes","notizen"]));
     if (baseNotes) notes.push(baseNotes);
     if (jobTitle) notes.push("Position: " + jobTitle);
     const birthday = pick(["birthday","geburtstag"]);
@@ -709,6 +743,7 @@ async function importFile(event) {
 /* ---------- Start ---------- */
 
 $("search").addEventListener("input", render);
+cleanStoredNotes();
 render();
 shrinkStoredPhotos();
 
