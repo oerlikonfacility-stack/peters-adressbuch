@@ -180,6 +180,7 @@ function closeEditor(){$("editor").style.display="none"}
 function saveContact(){
  const c={id:$("id").value||String(Date.now())};
  fields.forEach(k=>c[k]=$(k).value.trim());
+ c.photo = currentPhoto;
  if(!c.name){alert("Bitte einen Namen eingeben.");return}
  const i=contacts.findIndex(x=>x.id===c.id);
  if(i>=0)contacts[i]=c;else contacts.push(c);
