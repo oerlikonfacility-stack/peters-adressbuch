@@ -7,137 +7,717 @@
 <link rel="manifest" href="manifest.webmanifest">
 <title>Peters Adressbuch</title>
 <style>
-*{box-sizing:border-box}body{margin:0;background:#f1f4f7;color:#182431;font:16px system-ui,-apple-system,sans-serif}header{background:#17324d;color:#fff;padding:20px}h1{margin:0;font-size:25px}main{max-width:750px;margin:auto;padding:14px}input,textarea,button{font:inherit;padding:12px;border-radius:9px}input,textarea{width:100%;border:1px solid #ccd5df;margin:5px 0 10px;background:#fff;color:#182431}button{border:0;background:#245d86;color:#fff;font-weight:600;cursor:pointer;margin:3px}.secondary{background:#e0e8ef;color:#17324d}.danger{background:#9b2c2c;color:#fff}.card{background:#fff;border:1px solid #dce3e9;border-radius:13px;padding:14px;margin:10px 0;overflow:hidden}.name{font-size:19px;font-weight:bold}.actions{display:flex;flex-wrap:wrap;gap:4px;margin-top:10px}.actions button{flex:1}small,.hint{color:#667581}#editor{display:none;background:#fff;border:1px solid #ccd5df;border-radius:13px;padding:14px;margin:12px 0}.row{display:flex;gap:8px}.row>*{flex:1;min-width:0}#photoPreview{display:none;width:90px;height:90px;object-fit:cover;border-radius:50%;margin:8px 0}.top-actions{display:flex;gap:6px;flex-wrap:wrap}.top-actions button{flex:1}.notice{padding:10px;border-radius:9px;background:#fff4d6;color:#654d00;margin:10px 0}a{color:#245d86;overflow-wrap:anywhere}
+*{box-sizing:border-box}
+body{margin:0;background:#f1f4f7;color:#182431;font:16px system-ui,sans-serif}
+header{background:#17324d;color:white;padding:20px}
+h1{margin:0;font-size:25px}
+main{max-width:750px;margin:auto;padding:14px}
+input,textarea,button{font:inherit;padding:12px;border-radius:9px}
+input,textarea{width:100%;border:1px solid #ccd5df;margin:5px 0 10px;background:white}
+button{border:0;background:#245d86;color:white;font-weight:600;cursor:pointer;margin:3px}
+button:disabled{opacity:.6;cursor:wait}
+button.secondary{background:#e0e8ef;color:#17324d}
+.card{background:white;border:1px solid #dce3e9;border-radius:13px;padding:14px;margin:10px 0;overflow:auto}
+.name{font-size:19px;font-weight:bold}
+.actions{display:flex;flex-wrap:wrap;gap:4px;margin-top:10px}
+.actions button{flex:1}
+small{color:#667581}
+#editor{display:none;background:white;border:1px solid #ccd5df;border-radius:13px;padding:14px;margin:12px 0}
+.row{display:flex;gap:8px}
+.row>*{flex:1;min-width:0}
+#photoPreview{width:90px;height:90px;object-fit:cover;border-radius:50%;margin:8px 0}
+#photoInfo{display:block;margin-bottom:6px}
 </style>
 </head>
 <body>
-<header><h1>📇 Peters Adressbuch</h1><small style="color:#d9e7f1">Deine Kontakte. Einfach. Privat.</small></header>
+<header>
+  <h1>📇 Peters Adressbuch</h1>
+  <small style="color:#d9e7f1">Deine Kontakte. Einfach. Privat.</small>
+</header>
+
 <main>
-<input id="search" placeholder="🔎 Kontakte suchen …" autocomplete="off">
-<div class="top-actions"><button type="button" onclick="newContact()">＋ Kontakt</button><button type="button" onclick="backup()">Backup speichern</button></div>
-<div class="top-actions"><button type="button" class="secondary" onclick="document.getElementById('file').click()">Backup / VCF importieren</button><input id="file" type="file" accept=".json,.vcf,.vcard,.csv,application/json,text/vcard" hidden onchange="importFile(event)"></div>
-<section id="editor">
-<h2 id="formTitle">Neuer Kontakt</h2>
-<input id="id" type="hidden">
-<label for="name">Name *</label><input id="name" placeholder="Vor- und Nachname" autocomplete="name">
-<label for="photoFile">Kontaktfoto (aus Galerie oder vom Gerät)</label>
-<input id="photoFile" type="file" accept="image/*">
-<img id="photoPreview" alt="Vorschau Kontaktfoto">
-<div class="hint">Bilder bis 20 MB werden angenommen und automatisch verkleinert, damit sie weniger Speicher benötigen.</div>
-<button type="button" class="secondary" onclick="removePhoto()">Foto entfernen</button>
-<label for="company">Firma</label><input id="company" placeholder="Firma" autocomplete="organization">
-<label for="phone">Telefon</label><input id="phone" type="tel" placeholder="+49 …" autocomplete="tel">
-<label for="email">E-Mail</label><input id="email" type="email" placeholder="E-Mail-Adresse" autocomplete="email">
-<label for="street">Straße und Hausnummer</label><input id="street" placeholder="Straße und Hausnummer" autocomplete="street-address">
-<div class="row"><input id="postcode" placeholder="PLZ" autocomplete="postal-code"><input id="city" placeholder="Ort" autocomplete="address-level2"></div>
-<label for="notes">Notizen</label><textarea id="notes" rows="3" placeholder="Notizen"></textarea>
-<button type="button" onclick="saveContact()">Speichern</button><button type="button" class="secondary" onclick="closeEditor()">Abbrechen</button>
-</section>
-<p id="count"><small>Kontakte werden lokal in diesem Browser gespeichert.</small></p>
-<section id="contacts"></section>
-<p><small>Die Kontakte bleiben in diesem Browser auf deinem Gerät. Bitte regelmäßig ein Backup erstellen.</small></p>
+  <input id="search" placeholder="🔎 Kontakte suchen …" aria-label="Kontakte suchen">
+  <div class="row">
+    <button type="button" onclick="newContact()">＋ Kontakt</button>
+    <button type="button" onclick="backup()">Backup speichern</button>
+  </div>
+  <div class="row">
+    <button type="button" class="secondary" onclick="$('file').click()">Backup / Google-CSV / VCF importieren</button>
+    <input id="file" type="file" accept=".json,.vcf,.vcard,.csv,text/csv" hidden onchange="importFile(event)">
+  </div>
+
+  <section id="editor">
+    <h2 id="formTitle">Neuer Kontakt</h2>
+    <input id="id" type="hidden">
+
+    <label for="name">Name *</label>
+    <input id="name" placeholder="Vor- und Nachname" autocomplete="name">
+
+    <label for="photoFile">Kontaktfoto (aus der Galerie, wird automatisch verkleinert)</label>
+    <input id="photoFile" type="file" accept="image/*">
+    <small id="photoInfo"></small>
+    <img id="photoPreview" alt="Vorschau Kontaktfoto" hidden>
+    <div><button type="button" class="secondary" onclick="removePhoto()">Foto entfernen</button></div>
+
+    <label for="company">Firma</label>
+    <input id="company" placeholder="Firma">
+
+    <label for="phone">Telefon</label>
+    <input id="phone" type="tel" placeholder="+49 …">
+
+    <label for="email">E-Mail</label>
+    <input id="email" type="email" placeholder="E-Mail-Adresse">
+
+    <label for="street">Straße und Hausnummer</label>
+    <input id="street" placeholder="Straße und Hausnummer">
+
+    <div class="row">
+      <input id="postcode" placeholder="PLZ" aria-label="Postleitzahl">
+      <input id="city" placeholder="Ort" aria-label="Ort">
+    </div>
+
+    <label for="notes">Notizen</label>
+    <textarea id="notes" rows="3" placeholder="Notizen"></textarea>
+
+    <button type="button" id="saveBtn" onclick="saveContact()">Speichern</button>
+    <button type="button" class="secondary" onclick="closeEditor()">Abbrechen</button>
+  </section>
+
+  <p id="count"><small>Kontakte werden lokal gespeichert.</small></p>
+  <section id="contacts"></section>
+  <p><small>Die Kontakte bleiben in diesem Browser auf deinem Gerät. Bitte regelmäßig ein Backup erstellen. Ein Backup enthält auch die gespeicherten Kontaktfotos.</small></p>
 </main>
+
 <script>
-'use strict';
+"use strict";
+
 const $ = id => document.getElementById(id);
-const fields = ['name','company','phone','email','street','postcode','city','notes'];
-const STORAGE_KEY = 'petersKontakte';
+const fields = ["name","company","phone","email","street","postcode","city","notes"];
+const STORAGE_KEY = "petersKontakte";
+
+// Foto-Einstellungen: Fotos werden vor dem Speichern verkleinert
+const PHOTO_MAX_INPUT_MB = 40;      // größere Originaldateien werden abgelehnt
+const PHOTO_TARGET_CHARS = 40000;   // Ziel: ca. 30 KB pro Foto
+const PHOTO_SHRINK_ABOVE = 60000;   // bereits gespeicherte Fotos darüber werden nachträglich verkleinert
+const PHOTO_STEPS = [               // [maximale Kantenlänge, JPEG-Qualität]
+  [320, 0.80], [320, 0.65], [256, 0.60], [200, 0.50]
+];
+
 let contacts = [];
-let currentPhoto = '';
-try { const saved = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]'); contacts = Array.isArray(saved) ? saved : []; } catch(e) { contacts = []; }
-function persist(){
-  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(contacts)); return true; }
-  catch(e) { alert('Speichern nicht möglich: Der Browser-Speicher ist voll oder nicht verfügbar. Bitte ein Backup erstellen oder größere Fotos entfernen.'); return false; }
+let currentPhoto = "";
+
+try {
+  const stored = JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]");
+  contacts = Array.isArray(stored) ? stored : [];
+} catch (error) {
+  contacts = [];
 }
-function esc(value){return String(value ?? '').replace(/[&<>"']/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));}
-function compressImage(file){
-  return new Promise((resolve,reject)=>{
-    if(!file || !file.type.startsWith('image/')) { reject(new Error('Bitte eine Bilddatei auswählen.')); return; }
-    if(file.size > 20 * 1024 * 1024) { reject(new Error('Das Originalfoto ist größer als 20 MB.')); return; }
+
+/* ---------- Speichern ---------- */
+
+function persist() {
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(contacts));
+    return true;
+  } catch (error) {
+    alert("Speichern nicht möglich: Der Browser-Speicher ist voll.\n\nBitte zuerst ein Backup erstellen und dann einige Fotos oder Kontakte löschen.");
+    return false;
+  }
+}
+
+function makeId() {
+  return Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
+}
+
+function esc(value) {
+  return String(value || "").replace(/[&<>"']/g, char => ({
+    "&":"&amp;", "<":"&lt;", ">":"&gt;", '"':"&quot;", "'":"&#39;"
+  }[char]));
+}
+
+function validPhoto(value) {
+  return typeof value === "string" && /^data:image\/(jpeg|png|webp|gif);base64,/i.test(value);
+}
+
+/* ---------- Fotos verkleinern ---------- */
+
+function loadImage(src) {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    img.onload = () => resolve(img);
+    img.onerror = () => reject(new Error("Bild konnte nicht gelesen werden"));
+    img.src = src;
+  });
+}
+
+async function shrinkImage(src) {
+  const img = await loadImage(src);
+  const width = img.naturalWidth || img.width;
+  const height = img.naturalHeight || img.height;
+  if (!width || !height) throw new Error("Ungültige Bildgröße");
+
+  let result = "";
+  for (const [maxSide, quality] of PHOTO_STEPS) {
+    const scale = Math.min(1, maxSide / Math.max(width, height));
+    const canvas = document.createElement("canvas");
+    canvas.width = Math.max(1, Math.round(width * scale));
+    canvas.height = Math.max(1, Math.round(height * scale));
+    const ctx = canvas.getContext("2d");
+    ctx.fillStyle = "#ffffff";
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+    result = canvas.toDataURL("image/jpeg", quality);
+    if (result.length <= PHOTO_TARGET_CHARS) break;
+  }
+  return result;
+}
+
+function readFileAsDataURL(file) {
+  return new Promise((resolve, reject) => {
     const reader = new FileReader();
-    reader.onerror = () => reject(new Error('Das Foto konnte nicht gelesen werden.'));
-    reader.onload = () => {
-      const img = new Image();
-      img.onerror = () => reject(new Error('Das Bildformat konnte nicht verarbeitet werden.'));
-      img.onload = () => {
-        const max = 480;
-        const scale = Math.min(1, max / Math.max(img.naturalWidth, img.naturalHeight));
-        const canvas = document.createElement('canvas');
-        canvas.width = Math.max(1, Math.round(img.naturalWidth * scale));
-        canvas.height = Math.max(1, Math.round(img.naturalHeight * scale));
-        const ctx = canvas.getContext('2d');
-        if(!ctx) { reject(new Error('Bildverarbeitung ist in diesem Browser nicht verfügbar.')); return; }
-        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-        resolve(canvas.toDataURL('image/jpeg', 0.72));
-      };
-      img.src = reader.result;
-    };
+    reader.onload = () => resolve(reader.result);
+    reader.onerror = () => reject(new Error("Datei konnte nicht gelesen werden"));
     reader.readAsDataURL(file);
   });
 }
-$('photoFile').addEventListener('change', async function(){
-  const file = this.files && this.files[0]; if(!file) return;
-  const button = this;
-  button.disabled = true;
+
+function setPhotoPreview(src) {
+  if (src) {
+    $("photoPreview").src = src;
+    $("photoPreview").hidden = false;
+  } else {
+    $("photoPreview").removeAttribute("src");
+    $("photoPreview").hidden = true;
+  }
+}
+
+$("photoFile").addEventListener("change", async function () {
+  const file = this.files && this.files[0];
+  if (!file) return;
+
+  if (!file.type.startsWith("image/")) {
+    alert("Bitte eine Bilddatei auswählen.");
+    this.value = "";
+    return;
+  }
+  if (file.size > PHOTO_MAX_INPUT_MB * 1024 * 1024) {
+    alert("Das Foto ist extrem groß (über " + PHOTO_MAX_INPUT_MB + " MB). Bitte ein anderes Foto wählen.");
+    this.value = "";
+    return;
+  }
+
+  $("saveBtn").disabled = true;
+  $("photoInfo").textContent = "Foto wird verkleinert …";
   try {
-    currentPhoto = await compressImage(file);
-    $('photoPreview').src = currentPhoto;
-    $('photoPreview').style.display = 'block';
-  } catch(e) { alert(e.message || 'Das Foto konnte nicht verarbeitet werden.'); button.value = ''; }
-  finally { button.disabled = false; }
+    const original = await readFileAsDataURL(file);
+    currentPhoto = await shrinkImage(original);
+    setPhotoPreview(currentPhoto);
+    $("photoInfo").textContent =
+      "Foto verkleinert: " + Math.round(file.size / 1024) + " KB → " +
+      Math.round(currentPhoto.length * 0.75 / 1024) + " KB";
+  } catch (error) {
+    currentPhoto = "";
+    setPhotoPreview("");
+    $("photoInfo").textContent = "";
+    alert("Das Foto konnte nicht verarbeitet werden. Bitte als JPG oder PNG versuchen.");
+    this.value = "";
+  } finally {
+    $("saveBtn").disabled = false;
+  }
 });
-function removePhoto(){currentPhoto='';$('photoFile').value='';$('photoPreview').removeAttribute('src');$('photoPreview').style.display='none';}
-function render(){
-  const q = $('search').value.trim().toLocaleLowerCase('de');
-  const list = contacts.filter(c => fields.some(k => String(c[k] || '').toLocaleLowerCase('de').includes(q))).sort((a,b)=>String(a.name||'').localeCompare(String(b.name||''),'de'));
-  $('count').textContent = list.length + (list.length === 1 ? ' Kontakt' : ' Kontakte');
-  $('contacts').innerHTML = list.map(c => {
-    const address = [c.street,[c.postcode,c.city].filter(Boolean).join(' ')].filter(Boolean).join(', ');
-    const photo = c.photo ? `<img src="${c.photo}" alt="Kontaktfoto" style="width:64px;height:64px;object-fit:cover;border-radius:50%;float:right;margin-left:10px">` : '';
-    return `<article class="card">${photo}<div class="name">${esc(c.name)}</div>${c.company?`<div>${esc(c.company)}</div>`:''}${c.phone?`<p>☎ ${esc(c.phone)}</p>`:''}${c.email?`<p>✉ <a href="mailto:${esc(c.email)}">${esc(c.email)}</a></p>`:''}${address?`<p>📍 ${esc(address)}</p>`:''}${c.notes?`<p>${esc(c.notes)}</p>`:''}<div class="actions">${c.phone?`<button type="button" onclick="callContact('${esc(c.id)}')">Anrufen</button><button type="button" onclick="whatsapp('${esc(c.id)}')">WhatsApp</button>`:''}<button type="button" class="secondary" onclick="editContact('${esc(c.id)}')">Bearbeiten</button><button type="button" class="secondary" onclick="deleteContact('${esc(c.id)}')">Löschen</button>${address?`<button type="button" class="secondary" onclick="maps('${esc(c.id)}')">Karte</button>`:''}</div></article>`;
-  }).join('') || '<div class="card">Keine Kontakte gefunden. Lege deinen ersten Kontakt an.</div>';
+
+function removePhoto() {
+  currentPhoto = "";
+  $("photoFile").value = "";
+  $("photoInfo").textContent = "";
+  setPhotoPreview("");
 }
-function newContact(){
-  $('formTitle').textContent='Neuer Kontakt'; $('id').value=''; fields.forEach(k=>$(k).value=''); removePhoto(); $('editor').style.display='block'; $('name').focus(); window.scrollTo({top:0,behavior:'smooth'});
+
+// Bereits gespeicherte, zu große Fotos nachträglich verkleinern
+async function shrinkStoredPhotos() {
+  let changed = false;
+  for (const contact of contacts) {
+    if (validPhoto(contact.photo) && contact.photo.length > PHOTO_SHRINK_ABOVE) {
+      try {
+        const smaller = await shrinkImage(contact.photo);
+        if (smaller.length < contact.photo.length) {
+          contact.photo = smaller;
+          changed = true;
+        }
+      } catch (error) {
+        /* Foto unverändert lassen */
+      }
+    }
+  }
+  if (changed) {
+    try { localStorage.setItem(STORAGE_KEY, JSON.stringify(contacts)); } catch (error) {}
+    render();
+  }
 }
-function editContact(id){
-  const c=contacts.find(x=>String(x.id)===String(id)); if(!c)return;
-  $('formTitle').textContent='Kontakt bearbeiten'; $('id').value=c.id; fields.forEach(k=>$(k).value=c[k]||'');
-  currentPhoto=c.photo||''; $('photoFile').value='';
-  if(currentPhoto){$('photoPreview').src=currentPhoto;$('photoPreview').style.display='block';}else{$('photoPreview').removeAttribute('src');$('photoPreview').style.display='none';}
-  $('editor').style.display='block'; window.scrollTo({top:0,behavior:'smooth'});
+
+/* ---------- Anzeige ---------- */
+
+function render() {
+  const query = $("search").value.trim().toLocaleLowerCase("de");
+  const list = contacts
+    .filter(contact => fields.some(key =>
+      String(contact[key] || "").toLocaleLowerCase("de").includes(query)
+    ))
+    .sort((a, b) => String(a.name || "").localeCompare(String(b.name || ""), "de"));
+
+  $("count").textContent = list.length + (list.length === 1 ? " Kontakt" : " Kontakte");
+
+  $("contacts").innerHTML = list.map(contact => {
+    const address = [
+      contact.street,
+      [contact.postcode, contact.city].filter(Boolean).join(" ")
+    ].filter(Boolean).join(", ");
+
+    const photo = validPhoto(contact.photo)
+      ? `<img src="${esc(contact.photo)}" alt="Kontaktfoto" style="width:64px;height:64px;object-fit:cover;border-radius:50%;float:right;margin-left:10px">`
+      : "";
+
+    return `<article class="card">
+      ${photo}
+      <div class="name">${esc(contact.name)}</div>
+      ${contact.company ? `<div>${esc(contact.company)}</div>` : ""}
+      ${contact.phone ? `<p>☎ ${esc(contact.phone)}</p>` : ""}
+      ${contact.email ? `<p>✉ <a href="mailto:${esc(contact.email)}">${esc(contact.email)}</a></p>` : ""}
+      ${address ? `<p>📍 ${esc(address)}</p>` : ""}
+      ${contact.notes ? `<p>${esc(contact.notes).replace(/\n/g, "<br>")}</p>` : ""}
+      <div class="actions">
+        ${contact.phone ? `<button type="button" onclick="callContact('${esc(contact.id)}')">Anrufen</button>
+        <button type="button" onclick="whatsapp('${esc(contact.id)}')">WhatsApp</button>` : ""}
+        <button type="button" class="secondary" onclick="editContact('${esc(contact.id)}')">Bearbeiten</button>
+        <button type="button" class="secondary" onclick="deleteContact('${esc(contact.id)}')">Löschen</button>
+        ${address ? `<button type="button" class="secondary" onclick="maps('${esc(contact.id)}')">Karte</button>` : ""}
+      </div>
+    </article>`;
+  }).join("") || "<div class='card'>Keine Kontakte gefunden. Lege deinen ersten Kontakt an.</div>";
 }
-function closeEditor(){$('editor').style.display='none';}
-function saveContact(){
-  const c={id:$('id').value||String(Date.now())}; fields.forEach(k=>c[k]=$(k).value.trim()); c.photo=currentPhoto;
-  if(!c.name){alert('Bitte einen Namen eingeben.');$('name').focus();return;}
-  const index=contacts.findIndex(x=>String(x.id)===String(c.id));
-  const old = index>=0 ? contacts[index] : null;
-  if(index>=0) contacts[index]=c; else contacts.push(c);
-  if(!persist()){ if(index>=0)contacts[index]=old; else contacts=contacts.filter(x=>x.id!==c.id); return; }
-  closeEditor(); render();
+
+function newContact() {
+  $("formTitle").textContent = "Neuer Kontakt";
+  $("id").value = "";
+  fields.forEach(key => $(key).value = "");
+  removePhoto();
+  $("editor").style.display = "block";
+  window.scrollTo({top: 0, behavior: "smooth"});
+  $("name").focus();
 }
-function deleteContact(id){const c=contacts.find(x=>String(x.id)===String(id));if(c&&confirm('Kontakt '+c.name+' wirklich löschen?')){const previous=contacts;contacts=contacts.filter(x=>String(x.id)!==String(id));if(persist())render();else contacts=previous;}}
-function callContact(id){const c=contacts.find(x=>String(x.id)===String(id));if(c&&c.phone&&confirm('Telefonwähler für '+c.name+' ('+c.phone+') öffnen?'))location.href='tel:'+c.phone;}
-function whatsapp(id){const c=contacts.find(x=>String(x.id)===String(id));if(!c||!c.phone||!confirm('WhatsApp für '+c.name+' öffnen?'))return;let n=c.phone.replace(/[^\d+]/g,'');if(n.startsWith('+'))n=n.slice(1);else if(n.startsWith('00'))n=n.slice(2);else if(n.startsWith('0')){alert('Bitte die Nummer international speichern, z. B. +49 statt 0 am Anfang.');return;}n=n.replace(/\D/g,'');if(n)window.open('https://wa.me/'+n,'_blank','noopener');}
-function maps(id){const c=contacts.find(x=>String(x.id)===String(id));if(!c)return;const a=[c.street,c.postcode,c.city].filter(Boolean).join(', ');if(a)window.open('https://www.google.com/maps/search/?api=1&query='+encodeURIComponent(a),'_blank','noopener');}
-function backup(){const blob=new Blob([JSON.stringify({format:'PetersAdressbuch',contacts},null,2)],{type:'application/json'});const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download='peters-adressbuch-backup.json';a.click();setTimeout(()=>URL.revokeObjectURL(url),1500);}
-async function importFile(event){
-  const f=event.target.files&&event.target.files[0];if(!f)return;
-  try{
-    const txt=await f.text();let incoming=[];
-    if(/\.json$/i.test(f.name)){const data=JSON.parse(txt);incoming=Array.isArray(data)?data:data.contacts;if(!Array.isArray(incoming))throw new Error('Ungültige Backup-Datei.');}
-    else if(/\.vcf$|\.vcard$/i.test(f.name)||txt.includes('BEGIN:VCARD')){
-      const unfolded=txt.replace(/\r?\n[ \t]/g,'');incoming=unfolded.split(/BEGIN:VCARD/i).slice(1).map(block=>{const c={};block.split(/END:VCARD/i)[0].split(/\r?\n/).forEach(line=>{const i=line.indexOf(':');if(i<0)return;const k=line.slice(0,i).split(';')[0].toUpperCase();const v=line.slice(i+1).replace(/\\n/gi,' ').replace(/\\,/g,',');if(k==='FN')c.name=v;if(k==='ORG')c.company=v;if(k==='TEL'&&!c.phone)c.phone=v;if(k==='EMAIL'&&!c.email)c.email=v;if(k==='NOTE')c.notes=v;if(k==='ADR'){const p=v.split(';');c.street=p[2]||'';c.city=p[3]||'';c.postcode=p[5]||'';}});c.id=String(Date.now()+Math.random());return c;});
-    } else throw new Error('Bitte ein JSON-Backup oder eine VCF-Datei auswählen.');
-    if(!confirm(incoming.length+' Kontakte gefunden. Importieren?'))return;
-    const old=contacts;const known=new Set(contacts.map(c=>(c.phone||'').replace(/\D/g,'')).filter(Boolean));let added=0;
-    incoming.forEach(raw=>{const c={id:String(Date.now()+Math.random())};fields.forEach(k=>c[k]=String(raw[k]||''));c.photo=typeof raw.photo==='string'?raw.photo:'';const p=c.phone.replace(/\D/g,'');if(p&&known.has(p))return;if(!c.name)c.name='Importierter Kontakt';contacts.push(c);if(p)known.add(p);added++;});
-    if(!persist()){contacts=old;return;}render();alert(added+' Kontakte importiert.');
-  }catch(e){alert('Import fehlgeschlagen: '+e.message);}finally{event.target.value='';}
+
+function editContact(id) {
+  const contact = contacts.find(item => String(item.id) === String(id));
+  if (!contact) return;
+
+  $("formTitle").textContent = "Kontakt bearbeiten";
+  $("id").value = contact.id;
+  fields.forEach(key => $(key).value = contact[key] || "");
+  currentPhoto = validPhoto(contact.photo) ? contact.photo : "";
+  $("photoFile").value = "";
+  $("photoInfo").textContent = "";
+  setPhotoPreview(currentPhoto);
+
+  $("editor").style.display = "block";
+  window.scrollTo({top: 0, behavior: "smooth"});
 }
-$('search').addEventListener('input',render);render();
-if('serviceWorker' in navigator){window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js').catch(e=>console.warn('Offline-Modus:',e)));}
+
+function closeEditor() {
+  $("editor").style.display = "none";
+}
+
+function saveContact() {
+  const contact = {id: $("id").value || makeId()};
+  fields.forEach(key => contact[key] = $(key).value.trim());
+  contact.photo = currentPhoto;
+
+  if (!contact.name) {
+    alert("Bitte einen Namen eingeben.");
+    $("name").focus();
+    return;
+  }
+
+  const previous = contacts.slice();
+  const index = contacts.findIndex(item => String(item.id) === String(contact.id));
+  if (index >= 0) contacts[index] = contact;
+  else contacts.push(contact);
+
+  if (!persist()) {
+    contacts = previous;   // nichts verlieren, Editor bleibt offen
+    return;
+  }
+  closeEditor();
+  render();
+}
+
+function deleteContact(id) {
+  const contact = contacts.find(item => String(item.id) === String(id));
+  if (contact && confirm("Kontakt " + contact.name + " wirklich löschen?")) {
+    contacts = contacts.filter(item => String(item.id) !== String(id));
+    persist();
+    render();
+  }
+}
+
+function callContact(id) {
+  const contact = contacts.find(item => String(item.id) === String(id));
+  if (!contact || !contact.phone) return;
+  if (confirm("Telefonwähler für " + contact.name + " (" + contact.phone + ") öffnen?")) {
+    window.location.href = "tel:" + contact.phone;
+  }
+}
+
+function whatsapp(id) {
+  const contact = contacts.find(item => String(item.id) === String(id));
+  if (!contact || !contact.phone) return;
+  if (!confirm("WhatsApp für " + contact.name + " öffnen?")) return;
+
+  let number = contact.phone.replace(/[^\d+]/g, "");
+  if (number.startsWith("+")) number = number.slice(1);
+  else if (number.startsWith("00")) number = number.slice(2);
+  else if (number.startsWith("0")) {
+    alert("Bitte die Nummer international speichern, z. B. +49 statt 0 am Anfang.");
+    return;
+  }
+
+  number = number.replace(/\D/g, "");
+  if (number) window.open("https://wa.me/" + number, "_blank", "noopener");
+}
+
+function maps(id) {
+  const contact = contacts.find(item => String(item.id) === String(id));
+  if (!contact) return;
+  const address = [contact.street, contact.postcode, contact.city].filter(Boolean).join(", ");
+  if (address) window.open("https://www.google.com/maps/search/?api=1&query=" + encodeURIComponent(address), "_blank", "noopener");
+}
+
+function backup() {
+  const blob = new Blob(
+    [JSON.stringify({format: "PetersAdressbuch", contacts: contacts}, null, 2)],
+    {type: "application/json"}
+  );
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = "peters-adressbuch-backup.json";
+  link.click();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
+
+/* ---------- CSV (Google Kontakte) ---------- */
+
+// Text aus Datei lesen: UTF-8 (mit/ohne BOM), UTF-16 oder Windows-1252
+async function readTextFile(file) {
+  const bytes = new Uint8Array(await file.arrayBuffer());
+  if (bytes[0] === 0xFF && bytes[1] === 0xFE) return new TextDecoder("utf-16le").decode(bytes.subarray(2));
+  if (bytes[0] === 0xFE && bytes[1] === 0xFF) return new TextDecoder("utf-16be").decode(bytes.subarray(2));
+  try {
+    return new TextDecoder("utf-8", {fatal: true}).decode(bytes).replace(/^\uFEFF/, "");
+  } catch (error) {
+    return new TextDecoder("windows-1252").decode(bytes);
+  }
+}
+
+function detectDelimiter(text) {
+  // Trennzeichen aus der Kopfzeile bestimmen (nur außerhalb von Anführungszeichen)
+  const counts = {",": 0, ";": 0, "\t": 0};
+  let inQuotes = false;
+  for (let i = 0; i < text.length; i++) {
+    const ch = text[i];
+    if (ch === '"') inQuotes = !inQuotes;
+    else if (!inQuotes) {
+      if (ch === "\n" || ch === "\r") break;
+      if (ch in counts) counts[ch]++;
+    }
+  }
+  return Object.keys(counts).sort((a, b) => counts[b] - counts[a])[0];
+}
+
+// Vollständiger CSV-Parser: Anführungszeichen, Kommas und Zeilenumbrüche in Feldern, "" als Escape
+function parseCSV(text, delimiter) {
+  const rows = [];
+  let row = [];
+  let field = "";
+  let inQuotes = false;
+
+  for (let i = 0; i < text.length; i++) {
+    const ch = text[i];
+    if (inQuotes) {
+      if (ch === '"') {
+        if (text[i + 1] === '"') { field += '"'; i++; }
+        else inQuotes = false;
+      } else {
+        field += ch;
+      }
+    } else if (ch === '"') {
+      inQuotes = true;
+    } else if (ch === delimiter) {
+      row.push(field);
+      field = "";
+    } else if (ch === "\n" || ch === "\r") {
+      if (ch === "\r" && text[i + 1] === "\n") i++;
+      row.push(field);
+      field = "";
+      rows.push(row);
+      row = [];
+    } else {
+      field += ch;
+    }
+  }
+  if (field !== "" || row.length) {
+    row.push(field);
+    rows.push(row);
+  }
+  return rows.filter(r => r.some(cell => String(cell).trim() !== ""));
+}
+
+function csvToContacts(text) {
+  const rows = parseCSV(text, detectDelimiter(text));
+  if (rows.length < 2) throw new Error("Die CSV-Datei enthält keine Kontakte.");
+
+  // Spalten über die Kopfzeile zuordnen, nicht über die Position
+  const index = {};
+  rows[0].forEach((title, i) => {
+    const key = String(title).replace(/^\uFEFF/, "").trim().toLowerCase();
+    if (key && !(key in index)) index[key] = i;
+  });
+
+  const known = ["first name","given name","last name","family name","name","vorname","nachname",
+                 "phone 1 - value","e-mail 1 - value","address 1 - street","organization name",
+                 "organization 1 - name","telefon","e-mail","email","firma","notizen","notes"];
+  if (!known.some(key => key in index)) {
+    throw new Error("Die Kopfzeile der CSV wurde nicht erkannt. Bitte die Google-Kontakte-Datei im Format „Google CSV“ exportieren.");
+  }
+
+  const flat = s => String(s || "").replace(/\s*[\r\n]+\s*/g, ", ").trim();
+  const split = s => String(s || "").split(":::").map(v => v.trim()).filter(Boolean);
+
+  return rows.slice(1).map(row => {
+    const get = name => {
+      const i = index[name];
+      return i === undefined ? "" : String(row[i] || "").trim();
+    };
+    const pick = names => {
+      for (const name of names) {
+        const value = get(name);
+        if (value) return value;
+      }
+      return "";
+    };
+
+    // Name
+    const parts = [
+      pick(["name prefix"]),
+      pick(["first name","given name","vorname"]),
+      pick(["middle name","additional name"]),
+      pick(["last name","family name","nachname"]),
+      pick(["name suffix"])
+    ].filter(Boolean);
+    let name = parts.join(" ");
+    if (!name) name = pick(["name","file as","nickname"]);
+
+    // Firma und Position
+    const company = pick(["organization name","organization 1 - name","organization","company","firma"]);
+    const jobTitle = pick(["organization title","organization 1 - title"]);
+
+    // Telefonnummern: erste Nummer ins Feld, weitere in die Notizen
+    const phones = [];
+    const emails = [];
+    for (let n = 1; n <= 30; n++) {
+      const pv = "phone " + n + " - value";
+      const ev = "e-mail " + n + " - value";
+      if (!(pv in index) && !(ev in index)) { if (n > 5) break; continue; }
+      const pLabel = get("phone " + n + " - label") || get("phone " + n + " - type");
+      const eLabel = get("e-mail " + n + " - label") || get("e-mail " + n + " - type");
+      split(get(pv)).forEach(v => phones.push({value: v, label: pLabel}));
+      split(get(ev)).forEach(v => emails.push({value: v, label: eLabel}));
+    }
+    if (!phones.length) {
+      const generic = pick(["phone","telefon","mobil","mobile","handy"]);
+      if (generic) phones.push({value: generic, label: ""});
+    }
+    if (!emails.length) {
+      const generic = pick(["e-mail","email","e-mail-adresse"]);
+      if (generic) emails.push({value: generic, label: ""});
+    }
+
+    // Adressen: erste Adresse in die Felder, weitere in die Notizen
+    const addresses = [];
+    for (let n = 1; n <= 10; n++) {
+      const p = "address " + n + " - ";
+      if (!((p + "street") in index) && !((p + "formatted") in index) && !((p + "city") in index)) {
+        if (n > 3) break;
+        continue;
+      }
+      let street = flat(get(p + "street"));
+      const extended = flat(get(p + "extended address"));
+      if (extended) street = street ? street + ", " + extended : extended;
+      const postcode = get(p + "postal code");
+      const city = get(p + "city");
+      const formatted = flat(get(p + "formatted"));
+      if (!street && !postcode && !city && formatted) street = formatted;
+      if (street || postcode || city) addresses.push({street, postcode, city, formatted: formatted || [street, postcode, city].filter(Boolean).join(", ")});
+    }
+    if (!addresses.length) {
+      const street = flat(pick(["straße","strasse","street"]));
+      const postcode = pick(["plz","postleitzahl","postal code"]);
+      const city = pick(["ort","stadt","city"]);
+      if (street || postcode || city) addresses.push({street, postcode, city, formatted: ""});
+    }
+
+    // Notizen
+    const notes = [];
+    const baseNotes = pick(["notes","notizen"]);
+    if (baseNotes) notes.push(baseNotes);
+    if (jobTitle) notes.push("Position: " + jobTitle);
+    const birthday = pick(["birthday","geburtstag"]);
+    if (birthday) notes.push("Geburtstag: " + birthday);
+    phones.slice(1).forEach(p => notes.push("Weitere Telefonnummer" + (p.label ? " (" + p.label + ")" : "") + ": " + p.value));
+    emails.slice(1).forEach(e => notes.push("Weitere E-Mail" + (e.label ? " (" + e.label + ")" : "") + ": " + e.value));
+    addresses.slice(1).forEach(a => notes.push("Weitere Adresse: " + a.formatted));
+
+    if (!name) name = company || (emails[0] && emails[0].value) || (phones[0] && phones[0].value) || "";
+
+    const main = addresses[0] || {};
+    return {
+      name: name,
+      company: company,
+      phone: phones[0] ? phones[0].value : "",
+      email: emails[0] ? emails[0].value : "",
+      street: main.street || "",
+      postcode: main.postcode || "",
+      city: main.city || "",
+      notes: notes.join("\n")
+    };
+  }).filter(c => c.name || c.company || c.phone || c.email || c.street || c.notes);
+}
+
+/* ---------- VCF ---------- */
+
+function vcfToContacts(text) {
+  const unfolded = text.replace(/\r?\n[ \t]/g, "");
+  return unfolded.split(/BEGIN:VCARD/i).slice(1).map(block => {
+    const contact = {};
+    block.split(/END:VCARD/i)[0].split(/\r?\n/).forEach(line => {
+      const idx = line.indexOf(":");
+      if (idx < 0) return;
+      const key = line.slice(0, idx).split(";")[0].toUpperCase();
+      const value = line.slice(idx + 1).replace(/\\n/gi, " ").replace(/\\,/g, ",");
+      if (key === "FN") contact.name = value;
+      if (key === "ORG") contact.company = value.replace(/;/g, " ").trim();
+      if (key === "TEL" && !contact.phone) contact.phone = value;
+      if (key === "EMAIL" && !contact.email) contact.email = value;
+      if (key === "NOTE") contact.notes = value;
+      if (key === "ADR" && !contact.street && !contact.city) {
+        const p = value.split(";");
+        contact.street = p[2] || "";
+        contact.city = p[3] || "";
+        contact.postcode = p[5] || "";
+      }
+    });
+    return contact;
+  });
+}
+
+/* ---------- Import ---------- */
+
+function normPhone(value) {
+  const digits = String(value || "").replace(/\D/g, "");
+  return digits.length > 9 ? digits.slice(-9) : digits;   // +49 170… und 0170… gelten als gleich
+}
+
+function addContacts(incoming) {
+  const phones = new Set();
+  const emails = new Set();
+  const names = new Set();
+  contacts.forEach(c => {
+    const p = normPhone(c.phone);
+    if (p) phones.add(p);
+    if (c.email) emails.add(c.email.toLowerCase());
+    names.add((c.name || "").toLowerCase() + "|" + (c.company || "").toLowerCase());
+  });
+
+  let added = 0;
+  let skipped = 0;
+  incoming.forEach(raw => {
+    const contact = {id: makeId(), photo: validPhoto(raw.photo) ? raw.photo : ""};
+    fields.forEach(key => contact[key] = String(raw[key] || "").trim());
+    if (!contact.name) contact.name = "Importierter Kontakt";
+
+    const p = normPhone(contact.phone);
+    const e = contact.email.toLowerCase();
+    const n = contact.name.toLowerCase() + "|" + contact.company.toLowerCase();
+    const duplicate = (p && phones.has(p)) || (e && emails.has(e)) || (!p && !e && names.has(n));
+    if (duplicate) { skipped++; return; }
+
+    contacts.push(contact);
+    if (p) phones.add(p);
+    if (e) emails.add(e);
+    names.add(n);
+    added++;
+  });
+  return {added, skipped};
+}
+
+async function importFile(event) {
+  const file = event.target.files && event.target.files[0];
+  if (!file) return;
+
+  try {
+    let incoming = [];
+    let isJson = false;
+
+    if (/\.json$/i.test(file.name)) {
+      const data = JSON.parse(await readTextFile(file));
+      incoming = Array.isArray(data) ? data : data.contacts;
+      if (!Array.isArray(incoming)) throw new Error("Ungültige Backup-Datei");
+      isJson = true;
+    } else if (/\.csv$/i.test(file.name) || file.type === "text/csv") {
+      incoming = csvToContacts(await readTextFile(file));
+    } else {
+      const text = await readTextFile(file);
+      if (/\.vcf$|\.vcard$/i.test(file.name) || /BEGIN:VCARD/i.test(text)) {
+        incoming = vcfToContacts(text);
+      } else {
+        throw new Error("Bitte ein JSON-Backup, eine Google-CSV oder eine VCF-Datei auswählen.");
+      }
+    }
+
+    if (!incoming.length) throw new Error("Keine Kontakte in der Datei gefunden.");
+    if (!confirm(incoming.length + " Kontakte gefunden. Importieren?")) return;
+
+    const previous = contacts.slice();
+    const result = addContacts(incoming);
+
+    if (!persist()) {
+      contacts = previous;
+      render();
+      return;
+    }
+    render();
+    alert(result.added + " Kontakte importiert" +
+      (result.skipped ? ", " + result.skipped + " Duplikate übersprungen" : "") + ".");
+
+    if (isJson) shrinkStoredPhotos();
+  } catch (error) {
+    alert("Import fehlgeschlagen: " + error.message);
+  } finally {
+    event.target.value = "";
+  }
+}
+
+/* ---------- Start ---------- */
+
+$("search").addEventListener("input", render);
+render();
+shrinkStoredPhotos();
+
+if ("serviceWorker" in navigator) {
+  window.addEventListener("load", () => {
+    navigator.serviceWorker.register("./sw.js")
+      .catch(error => console.error("Offline-Modus:", error));
+  });
+}
 </script>
 </body>
 </html>
