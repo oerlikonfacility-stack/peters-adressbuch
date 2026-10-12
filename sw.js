@@ -1,5 +1,4 @@
-
-const CACHE_NAME = "peters-adressbuch-v1";
+const CACHE_NAME = "peters-adressbuch-v2";
 
 const FILES = [
   "./",
@@ -10,7 +9,7 @@ const FILES = [
 self.addEventListener("install", event => {
   event.waitUntil(
     caches.open(CACHE_NAME)
-      .then(cache => cache.addAll(FILES))
+      .then(cache => cache.addAll(FILES.map(file => new Request(file, {cache: "reload"}))))
       .then(() => self.skipWaiting())
   );
 });
@@ -27,6 +26,8 @@ self.addEventListener("activate", event => {
   );
 });
 
+// Network-first: Es wird immer zuerst die neueste Version geladen.
+// Nur ohne Internet kommt die gespeicherte Offline-Kopie zum Einsatz.
 self.addEventListener("fetch", event => {
   if (event.request.method !== "GET") return;
 
@@ -34,17 +35,16 @@ self.addEventListener("fetch", event => {
   if (url.origin !== self.location.origin) return;
 
   event.respondWith(
-    caches.match(event.request).then(cached => {
-      if (cached) return cached;
-
-      return fetch(event.request).then(response => {
+    fetch(event.request, {cache: "no-cache"})
+      .then(response => {
         if (response.ok) {
           const copy = response.clone();
-          caches.open(CACHE_NAME)
-            .then(cache => cache.put(event.request, copy));
+          caches.open(CACHE_NAME).then(cache => cache.put(event.request, copy));
         }
         return response;
-      }).catch(() => caches.match("./index.html"));
-    })
+      })
+      .catch(() =>
+        caches.match(event.request).then(cached => cached || caches.match("./index.html"))
+      )
   );
 });
