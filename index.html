@@ -124,8 +124,8 @@ $("photoFile").addEventListener("change", function () {
     return;
   }
 
-  if (file.size > 3 * 1024 * 1024) {
-    alert("Bitte ein Foto mit maximal 3 MB auswählen.");
+  if (file.size > 10 * 1024 * 1024) {
+    alert("Bitte ein Foto mit maximal 10 MB auswählen.");
     this.value = "";
     return;
   }
