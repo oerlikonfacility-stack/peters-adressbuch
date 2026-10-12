@@ -132,6 +132,7 @@ function render(){
  $("contacts").innerHTML=list.map(c=>{
  const address=[c.street,[c.postcode,c.city].filter(Boolean).join(" ")].filter(Boolean).join(", ");
  return `<article class="card">
+${c.photo ? `<img src="${c.photo}" alt="Kontaktfoto" style="width:64px;height:64px;object-fit:cover;border-radius:50%;float:right;margin-left:10px">` : ""}
  <div class="name">${esc(c.name)}</div>
  ${c.company?`<div>${esc(c.company)}</div>`:""}
  ${c.phone?`<p>☎ ${esc(c.phone)}</p>`:""}
