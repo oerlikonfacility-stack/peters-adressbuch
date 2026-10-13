@@ -51,10 +51,11 @@ button.mini{padding:8px 14px;font-size:14px;background:rgba(255,255,255,.15);col
   <input id="search" placeholder="🔎 Kontakte suchen …" aria-label="Kontakte suchen">
   <div class="row">
     <button type="button" onclick="newContact()">＋ Kontakt</button>
-    <button type="button" onclick="backup()">Backup speichern</button>
+    <button type="button" onclick="backupCSV()">Backup speichern (CSV)</button>
   </div>
   <div class="row">
-    <button type="button" class="secondary" onclick="$('file').click()">Backup / Google-CSV / VCF importieren</button>
+    <button type="button" class="secondary" onclick="backup()">Backup mit Fotos (JSON)</button>
+    <button type="button" class="secondary" onclick="$('file').click()">Importieren (CSV / JSON / VCF)</button>
     <input id="file" type="file" accept=".json,.vcf,.vcard,.csv,text/csv" hidden onchange="importFile(event)">
   </div>
 
@@ -97,7 +98,7 @@ button.mini{padding:8px 14px;font-size:14px;background:rgba(255,255,255,.15);col
 
   <p id="count"><small>Kontakte werden lokal gespeichert.</small></p>
   <section id="contacts"></section>
-  <p><small>Die Kontakte bleiben in diesem Browser auf deinem Gerät. Bitte regelmäßig ein Backup erstellen. Ein Backup enthält auch die gespeicherten Kontaktfotos.</small></p>
+  <p><small>Die Kontakte bleiben in diesem Browser auf deinem Gerät. Bitte regelmäßig ein Backup erstellen. Das CSV-Backup enthält alle Kontaktdaten, aber keine Fotos. Das JSON-Backup enthält zusätzlich die Fotos und dein Bild.</small></p>
 </main>
 
 <script>
@@ -410,12 +411,45 @@ function backup() {
     [JSON.stringify({format: "PetersAdressbuch", contacts: contacts, profilePhoto: profilePhoto}, null, 2)],
     {type: "application/json"}
   );
+  saveBlob(blob, "peters-adressbuch-backup-" + today() + ".json");
+}
+
+function today() {
+  return new Date().toISOString().slice(0, 10);
+}
+
+// Download, der auch in mobilen Browsern (z. B. Opera) zuverlässig startet
+function saveBlob(blob, filename) {
   const url = URL.createObjectURL(blob);
   const link = document.createElement("a");
   link.href = url;
-  link.download = "peters-adressbuch-backup.json";
+  link.download = filename;
+  link.style.display = "none";
+  document.body.appendChild(link);
   link.click();
-  setTimeout(() => URL.revokeObjectURL(url), 1000);
+  setTimeout(() => {
+    link.remove();
+    URL.revokeObjectURL(url);
+  }, 10000);
+}
+
+// CSV-Backup (Semikolon-getrennt, UTF-8 mit BOM, öffnet sich auch in Excel richtig)
+function backupCSV() {
+  if (!contacts.length) {
+    alert("Es gibt noch keine Kontakte zum Sichern.");
+    return;
+  }
+  const header = ["Name", "Firma", "Telefon", "E-Mail", "Straße", "PLZ", "Ort", "Notizen"];
+  const keys = ["name", "company", "phone", "email", "street", "postcode", "city", "notes"];
+  const cell = value => {
+    const text = String(value || "");
+    return /[";\r\n]/.test(text) ? '"' + text.replace(/"/g, '""') + '"' : text;
+  };
+  const lines = [header.map(cell).join(";")];
+  contacts.forEach(contact => lines.push(keys.map(key => cell(contact[key])).join(";")));
+
+  const blob = new Blob(["\uFEFF" + lines.join("\r\n")], {type: "text/csv;charset=utf-8"});
+  saveBlob(blob, "peters-adressbuch-backup-" + today() + ".csv");
 }
 
 /* ---------- Foto-Links aus Notizen entfernen ---------- */
