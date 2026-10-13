@@ -28,6 +28,14 @@ small{color:#667581}
 .row>*{flex:1;min-width:0}
 #photoPreview{width:90px;height:90px;object-fit:cover;border-radius:50%;margin:8px 0}
 #photoInfo{display:block;margin-bottom:6px}
+.tabs{display:flex;gap:6px;margin:10px 0 4px}
+.tabs button{flex:1;margin:0;padding:10px 4px;font-size:14px;background:#e0e8ef;color:#17324d}
+.tabs button.active{background:#245d86;color:#fff}
+.badge{display:inline-block;font-size:12px;padding:2px 9px;border-radius:99px;background:#e0e8ef;color:#17324d;margin-left:8px;font-weight:600;vertical-align:middle}
+#selbar{display:none;position:sticky;top:0;z-index:5;background:#fff;border:1px solid #ccd5df;border-radius:13px;padding:8px;margin:10px 0;box-shadow:0 2px 8px rgba(0,0,0,.12)}
+#selbar .row{margin-top:4px}
+input.pick{width:24px;height:24px;margin:0 10px 0 0;padding:0;vertical-align:middle;display:inline-block}
+select{width:100%;font:inherit;padding:12px;border-radius:9px;border:1px solid #ccd5df;margin:5px 0 10px;background:white}
 .selfbox{display:flex;align-items:center;gap:12px;margin-top:14px;flex-wrap:wrap}
 #selfPhoto{width:96px;height:96px;object-fit:cover;border-radius:50%;border:3px solid #fff}
 button.mini{padding:8px 14px;font-size:14px;background:rgba(255,255,255,.15);color:#fff;border:1px solid rgba(255,255,255,.4);margin:0 6px 0 0}
@@ -49,6 +57,12 @@ button.mini{padding:8px 14px;font-size:14px;background:rgba(255,255,255,.15);col
 
 <main>
   <input id="search" placeholder="🔎 Kontakte suchen …" aria-label="Kontakte suchen">
+  <div class="tabs" id="tabs">
+    <button type="button" data-g="" class="active" onclick="setTab('')">Alle</button>
+    <button type="button" data-g="privat" onclick="setTab('privat')">Privat</button>
+    <button type="button" data-g="arbeit" onclick="setTab('arbeit')">Arbeit</button>
+    <button type="button" data-g="none" onclick="setTab('none')">Ohne</button>
+  </div>
   <div class="row">
     <button type="button" onclick="newContact()">＋ Kontakt</button>
     <button type="button" onclick="backupCSV()">Backup speichern (CSV)</button>
@@ -71,6 +85,13 @@ button.mini{padding:8px 14px;font-size:14px;background:rgba(255,255,255,.15);col
     <small id="photoInfo"></small>
     <img id="photoPreview" alt="Vorschau Kontaktfoto" hidden>
     <div><button type="button" class="secondary" onclick="removePhoto()">Foto entfernen</button></div>
+
+    <label for="group">Gruppe</label>
+    <select id="group">
+      <option value="">Keine Gruppe</option>
+      <option value="privat">Privat</option>
+      <option value="arbeit">Arbeit</option>
+    </select>
 
     <label for="company">Firma</label>
     <input id="company" placeholder="Firma">
@@ -96,9 +117,28 @@ button.mini{padding:8px 14px;font-size:14px;background:rgba(255,255,255,.15);col
     <button type="button" class="secondary" onclick="closeEditor()">Abbrechen</button>
   </section>
 
+  <div class="row">
+    <button type="button" class="secondary" id="selToggle" onclick="toggleSelect()">☑ Mehrere auswählen &amp; verschieben</button>
+  </div>
+  <div id="selbar">
+    <div><b id="selInfo">0 ausgewählt</b></div>
+    <div class="row">
+      <button type="button" onclick="moveSelected('privat')">→ Privat</button>
+      <button type="button" onclick="moveSelected('arbeit')">→ Arbeit</button>
+    </div>
+    <div class="row">
+      <button type="button" class="secondary" onclick="selectAllVisible()">Alle angezeigten</button>
+      <button type="button" class="secondary" onclick="moveSelected('')">Gruppe entfernen</button>
+    </div>
+    <div class="row">
+      <button type="button" class="secondary" onclick="toggleSelect()">Fertig</button>
+    </div>
+  </div>
+
   <p id="count"><small>Kontakte werden lokal gespeichert.</small></p>
   <section id="contacts"></section>
   <p><small>Die Kontakte bleiben in diesem Browser auf deinem Gerät. Bitte regelmäßig ein Backup erstellen. Das CSV-Backup enthält alle Kontaktdaten, aber keine Fotos. Das JSON-Backup enthält zusätzlich die Fotos und dein Bild.</small></p>
+  <p><small>Version 2026-10-13b (CSV-Backup, Gruppen)</small></p>
 </main>
 
 <script>
@@ -118,8 +158,30 @@ const PHOTO_STEPS = [               // [maximale Kantenlänge, JPEG-Qualität]
   [320, 0.80], [320, 0.65], [256, 0.60], [200, 0.50]
 ];
 
+const GROUPS = {privat: "Privat", arbeit: "Arbeit"};
+let currentTab = "";          // "", "privat", "arbeit" oder "none" (ohne Gruppe)
+let selectMode = false;
+const selected = new Set();
+
 let contacts = [];
 let currentPhoto = "";
+
+function normalizeGroup(value) {
+  const v = String(value || "").trim().toLowerCase();
+  if (v === "privat" || v === "private" || v === "privatperson") return "privat";
+  if (v === "arbeit" || v === "work" || v === "beruf" || v === "geschäftlich") return "arbeit";
+  return "";
+}
+
+// Aus Google-Labels (z. B. "* myContacts ::: Arbeit") bzw. VCF-Kategorien die Gruppe lesen
+function groupFromLabels(text) {
+  const tokens = String(text || "").split(/:::|,|;/);
+  for (const token of tokens) {
+    const g = normalizeGroup(token.replace(/^\*\s*/, ""));
+    if (g) return g;
+  }
+  return "";
+}
 
 try {
   const stored = JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]");
@@ -275,12 +337,19 @@ async function shrinkStoredPhotos() {
 function render() {
   const query = $("search").value.trim().toLocaleLowerCase("de");
   const list = contacts
+    .filter(contact => {
+      const g = normalizeGroup(contact.group);
+      if (currentTab === "none") return !g;
+      return !currentTab || g === currentTab;
+    })
     .filter(contact => fields.some(key =>
       String(contact[key] || "").toLocaleLowerCase("de").includes(query)
     ))
     .sort((a, b) => String(a.name || "").localeCompare(String(b.name || ""), "de"));
 
   $("count").textContent = list.length + (list.length === 1 ? " Kontakt" : " Kontakte");
+  updateTabs();
+  updateSelInfo();
 
   $("contacts").innerHTML = list.map(contact => {
     const address = [
@@ -294,7 +363,7 @@ function render() {
 
     return `<article class="card">
       ${photo}
-      <div class="name">${esc(contact.name)}</div>
+      <div class="name">${selectMode ? `<input type="checkbox" class="pick" ${selected.has(String(contact.id)) ? "checked" : ""} onchange="togglePick('${esc(contact.id)}', this.checked)" aria-label="Auswählen">` : ""}${esc(contact.name)}${GROUPS[normalizeGroup(contact.group)] ? `<span class="badge">${GROUPS[normalizeGroup(contact.group)]}</span>` : ""}</div>
       ${contact.company ? `<div>${esc(contact.company)}</div>` : ""}
       ${contact.phone ? `<p>☎ ${esc(contact.phone)}</p>` : ""}
       ${contact.email ? `<p>✉ <a href="mailto:${esc(contact.email)}">${esc(contact.email)}</a></p>` : ""}
@@ -303,6 +372,8 @@ function render() {
       <div class="actions">
         ${contact.phone ? `<button type="button" onclick="callContact('${esc(contact.id)}')">Anrufen</button>
         <button type="button" onclick="whatsapp('${esc(contact.id)}')">WhatsApp</button>` : ""}
+        ${normalizeGroup(contact.group) !== "privat" ? `<button type="button" class="secondary" onclick="moveContact('${esc(contact.id)}','privat')">→ Privat</button>` : ""}
+        ${normalizeGroup(contact.group) !== "arbeit" ? `<button type="button" class="secondary" onclick="moveContact('${esc(contact.id)}','arbeit')">→ Arbeit</button>` : ""}
         <button type="button" class="secondary" onclick="editContact('${esc(contact.id)}')">Bearbeiten</button>
         <button type="button" class="secondary" onclick="deleteContact('${esc(contact.id)}')">Löschen</button>
         ${address ? `<button type="button" class="secondary" onclick="maps('${esc(contact.id)}')">Karte</button>` : ""}
@@ -315,6 +386,7 @@ function newContact() {
   $("formTitle").textContent = "Neuer Kontakt";
   $("id").value = "";
   fields.forEach(key => $(key).value = "");
+  $("group").value = (currentTab === "privat" || currentTab === "arbeit") ? currentTab : "";
   removePhoto();
   $("editor").style.display = "block";
   window.scrollTo({top: 0, behavior: "smooth"});
@@ -328,6 +400,7 @@ function editContact(id) {
   $("formTitle").textContent = "Kontakt bearbeiten";
   $("id").value = contact.id;
   fields.forEach(key => $(key).value = contact[key] || "");
+  $("group").value = normalizeGroup(contact.group);
   currentPhoto = validPhoto(contact.photo) ? contact.photo : "";
   $("photoFile").value = "";
   $("photoInfo").textContent = "";
@@ -345,6 +418,7 @@ function saveContact() {
   const contact = {id: $("id").value || makeId()};
   fields.forEach(key => contact[key] = $(key).value.trim());
   contact.photo = currentPhoto;
+  contact.group = normalizeGroup($("group").value);
 
   if (!contact.name) {
     alert("Bitte einen Namen eingeben.");
@@ -439,14 +513,16 @@ function backupCSV() {
     alert("Es gibt noch keine Kontakte zum Sichern.");
     return;
   }
-  const header = ["Name", "Firma", "Telefon", "E-Mail", "Straße", "PLZ", "Ort", "Notizen"];
-  const keys = ["name", "company", "phone", "email", "street", "postcode", "city", "notes"];
+  const header = ["Name", "Firma", "Telefon", "E-Mail", "Straße", "PLZ", "Ort", "Notizen", "Gruppe"];
+  const keys = ["name", "company", "phone", "email", "street", "postcode", "city", "notes", "group"];
   const cell = value => {
     const text = String(value || "");
     return /[";\r\n]/.test(text) ? '"' + text.replace(/"/g, '""') + '"' : text;
   };
   const lines = [header.map(cell).join(";")];
-  contacts.forEach(contact => lines.push(keys.map(key => cell(contact[key])).join(";")));
+  contacts.forEach(contact => lines.push(keys.map(key =>
+    cell(key === "group" ? (GROUPS[normalizeGroup(contact.group)] || "") : contact[key])
+  ).join(";")));
 
   const blob = new Blob(["\uFEFF" + lines.join("\r\n")], {type: "text/csv;charset=utf-8"});
   saveBlob(blob, "peters-adressbuch-backup-" + today() + ".csv");
@@ -668,7 +744,8 @@ function csvToContacts(text) {
       street: main.street || "",
       postcode: main.postcode || "",
       city: main.city || "",
-      notes: notes.join("\n")
+      notes: notes.join("\n"),
+      group: normalizeGroup(pick(["gruppe","group"])) || groupFromLabels(pick(["labels","label"]))
     };
   }).filter(c => c.name || c.company || c.phone || c.email || c.street || c.notes);
 }
@@ -689,6 +766,7 @@ function vcfToContacts(text) {
       if (key === "TEL" && !contact.phone) contact.phone = value;
       if (key === "EMAIL" && !contact.email) contact.email = value;
       if (key === "NOTE") contact.notes = value;
+      if (key === "CATEGORIES" && !contact.group) contact.group = groupFromLabels(value);
       if (key === "ADR" && !contact.street && !contact.city) {
         const p = value.split(";");
         contact.street = p[2] || "";
@@ -721,7 +799,11 @@ function addContacts(incoming) {
   let added = 0;
   let skipped = 0;
   incoming.forEach(raw => {
-    const contact = {id: makeId(), photo: validPhoto(raw.photo) ? raw.photo : ""};
+    const contact = {
+      id: makeId(),
+      photo: validPhoto(raw.photo) ? raw.photo : "",
+      group: normalizeGroup(raw.group) || ((currentTab === "privat" || currentTab === "arbeit") ? currentTab : "")
+    };
     fields.forEach(key => contact[key] = String(raw[key] || "").trim());
     if (!contact.name) contact.name = "Importierter Kontakt";
 
@@ -793,6 +875,86 @@ async function importFile(event) {
   } finally {
     event.target.value = "";
   }
+}
+
+/* ---------- Gruppen: Tabs, Auswählen, Verschieben ---------- */
+
+function updateTabs() {
+  const names = {"": "Alle", privat: "Privat", arbeit: "Arbeit", none: "Ohne"};
+  const count = g => contacts.filter(c => {
+    const cg = normalizeGroup(c.group);
+    if (g === "none") return !cg;
+    return !g || cg === g;
+  }).length;
+  document.querySelectorAll("#tabs button").forEach(button => {
+    const g = button.dataset.g;
+    button.textContent = names[g] + " (" + count(g) + ")";
+    button.classList.toggle("active", g === currentTab);
+  });
+}
+
+function setTab(group) {
+  currentTab = group;
+  render();
+}
+
+function updateSelInfo() {
+  $("selInfo").textContent = selected.size + (selected.size === 1 ? " Kontakt ausgewählt" : " Kontakte ausgewählt");
+}
+
+function toggleSelect() {
+  selectMode = !selectMode;
+  selected.clear();
+  $("selbar").style.display = selectMode ? "block" : "none";
+  $("selToggle").textContent = selectMode ? "Auswahl beenden" : "☑ Mehrere auswählen & verschieben";
+  render();
+}
+
+function togglePick(id, checked) {
+  if (checked) selected.add(String(id));
+  else selected.delete(String(id));
+  updateSelInfo();
+}
+
+function visibleContacts() {
+  const query = $("search").value.trim().toLocaleLowerCase("de");
+  return contacts.filter(contact => {
+    const g = normalizeGroup(contact.group);
+    if (currentTab === "none" && g) return false;
+    if (currentTab && currentTab !== "none" && g !== currentTab) return false;
+    return fields.some(key => String(contact[key] || "").toLocaleLowerCase("de").includes(query));
+  });
+}
+
+function selectAllVisible() {
+  visibleContacts().forEach(contact => selected.add(String(contact.id)));
+  render();
+}
+
+function setGroupFor(ids, group) {
+  const previous = contacts.map(contact => Object.assign({}, contact));
+  contacts.forEach(contact => {
+    if (ids.has(String(contact.id))) contact.group = group;
+  });
+  if (!persist()) {
+    contacts = previous;
+    return false;
+  }
+  return true;
+}
+
+function moveSelected(group) {
+  if (!selected.size) {
+    alert("Bitte zuerst Kontakte auswählen.");
+    return;
+  }
+  if (setGroupFor(selected, group)) selected.clear();
+  render();
+}
+
+function moveContact(id, group) {
+  setGroupFor(new Set([String(id)]), group);
+  render();
 }
 
 /* ---------- Eigenes Bild unter dem Titel ---------- */
