@@ -2,715 +2,1027 @@
 <html lang="de">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="theme-color" content="#17324d">
-<link rel="manifest" href="ticket-manifest.webmanifest">
-<title>Peters Ticketsystem</title>
+<link rel="manifest" href="manifest.webmanifest">
+<title>Peters Adressbuch</title>
 <style>
-:root{--bg:#f1f4f7;--card:#fff;--tx:#182431;--mu:#667581;--bd:#dce3e9;--pr:#245d86;--hd:#17324d;--sec:#e0e8ef}
-@media(prefers-color-scheme:dark){:root{--bg:#0f1720;--card:#18232f;--tx:#e8eef4;--mu:#93a4b3;--bd:#27384a;--pr:#3b8bc4;--hd:#0b2236;--sec:#223446}}
 *{box-sizing:border-box}
-body{margin:0;background:var(--bg);color:var(--tx);font:16px system-ui,sans-serif;padding-bottom:30px}
-header{background:var(--hd);color:#fff;padding:18px 16px 14px;padding-top:calc(18px + env(safe-area-inset-top,0px))}
-h1{margin:0;font-size:24px}
-header small{color:#c5d6e4}
-.hrow{display:flex;align-items:center;gap:14px}
-.avatar{width:76px;height:76px;border-radius:50%;border:3px solid rgba(255,255,255,.85);background:rgba(255,255,255,.12);display:flex;align-items:center;justify-content:center;overflow:hidden;cursor:pointer;flex:none;font-size:28px}
-.avatar img{width:100%;height:100%;object-fit:cover}
-.lnk{background:none;border:0;color:#c5d6e4;text-decoration:underline;padding:4px 0;margin:0 12px 0 0;font-size:13px;font-weight:400}
-.stats{display:flex;gap:8px;margin-top:12px;flex-wrap:wrap}
-.stat{background:rgba(255,255,255,.14);border-radius:10px;padding:6px 12px;font-size:14px}
-.stat b{font-size:18px;margin-right:4px}
-main{max-width:760px;margin:auto;padding:12px}
-input,select,textarea,button{font:inherit;padding:12px;border-radius:10px;color:var(--tx)}
-input,select,textarea{width:100%;border:1px solid var(--bd);background:var(--card);margin:4px 0 10px}
-button{border:0;background:var(--pr);color:#fff;font-weight:600;cursor:pointer;margin:3px}
-button.sec{background:var(--sec);color:var(--tx)}
-button.del{background:#c0392b}
-.filters{display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px}
-.filters select{margin:0;padding:10px 6px;font-size:14px}
-#q{margin:0 0 8px}
-.card{background:var(--card);border:1px solid var(--bd);border-left:7px solid var(--bd);border-radius:13px;padding:12px 14px;margin:10px 0}
-.p-dringend{border-left-color:#d64545}.p-hoch{border-left-color:#e8892b}.p-normal{border-left-color:#3b8bc4}.p-niedrig{border-left-color:#8a9aa8}
-.card.done{opacity:.6}
-.top{display:flex;justify-content:space-between;gap:8px;align-items:flex-start}
-.title{font-weight:700;font-size:17px;overflow-wrap:anywhere}
-.badge{display:inline-block;font-size:12px;font-weight:700;padding:3px 10px;border-radius:99px;white-space:nowrap}
-.pr-dringend{background:#d64545;color:#fff}.pr-hoch{background:#e8892b;color:#fff}.pr-normal{background:rgba(59,139,196,.2);color:var(--pr)}.pr-niedrig{background:var(--sec);color:var(--mu)}
-.s-offen{background:rgba(214,69,69,.15);color:#d64545}.s-bearbeitung{background:rgba(59,139,196,.2);color:#2f7fb8}.s-teil{background:rgba(232,137,43,.2);color:#c46d12}.s-angebot{background:rgba(142,84,196,.2);color:#9b59d0}.s-pr{background:rgba(0,150,160,.2);color:#0a9aa5}.s-dienstleister{background:rgba(220,170,20,.22);color:#b8860b}.s-warten{background:rgba(138,154,168,.25);color:var(--mu)}.s-erledigt{background:rgba(46,160,90,.2);color:#2a9a57}
-.meta{color:var(--mu);font-size:14px;margin:6px 0;overflow-wrap:anywhere}
-.late{color:#d64545;font-weight:700}
-.txt{margin:6px 0;white-space:pre-wrap;overflow-wrap:anywhere}
-.act{display:flex;gap:6px;margin-top:8px}
-.act select{margin:0;flex:2;padding:10px}
-.act button{flex:1;margin:0}
-.fab{z-index:5;line-height:1;font-weight:400;position:fixed;right:16px;bottom:calc(16px + env(safe-area-inset-bottom,0px));width:62px;height:62px;border-radius:50%;font-size:38px;padding:0;box-shadow:0 4px 14px rgba(0,0,0,.35)}
-#sheet,#plan,#syncs{display:none;position:fixed;inset:0;background:var(--bg);overflow:auto;z-index:10}
-#sheet .in,#plan .in,#syncs .in{max-width:760px;margin:auto;padding:14px;padding-top:calc(14px + env(safe-area-inset-top,0px))}
-.pi{display:flex;align-items:center;gap:8px;background:var(--card);border:1px solid var(--bd);border-radius:10px;padding:10px;margin:4px 0;cursor:pointer}
-.pi span{flex:1;overflow-wrap:anywhere}.pi b{padding:2px 8px;color:var(--mu)}
-.thumbs{display:flex;gap:8px;flex-wrap:wrap;margin:4px 0}
-.th{position:relative}.th img{width:84px;height:84px;object-fit:cover;border-radius:10px;display:block}
-.th b{position:absolute;top:2px;right:2px;background:rgba(0,0,0,.6);color:#fff;border-radius:50%;width:24px;height:24px;text-align:center;line-height:24px;font-size:13px}
-img.mini{width:56px;height:56px;object-fit:cover;border-radius:8px;margin:4px 6px 0 0;cursor:pointer}
-#lb{display:none;position:fixed;inset:0;background:rgba(0,0,0,.92);z-index:30;align-items:center;justify-content:center}
-#lb img{max-width:100%;max-height:100%}
-table.ev{width:100%;border-collapse:collapse;font-size:14px;margin-top:8px}
-table.ev td,table.ev th{padding:6px 4px;border-bottom:1px solid var(--bd);text-align:center}
-table.ev td:first-child,table.ev th:first-child{text-align:left}
-summary{cursor:pointer;font-weight:600}
-.seg{display:flex;gap:6px;margin:0 0 10px}
-.seg button{flex:1;margin:0;background:var(--sec);color:var(--tx)}
-.seg button.on{background:var(--pr);color:#fff}
-.two{display:grid;grid-template-columns:1fr 1fr;gap:8px}
-.hist{font-size:13px;color:var(--mu);margin:0 0 12px;padding-left:18px}
-label{font-weight:600;font-size:14px}
-.foot{display:flex;flex-wrap:wrap;margin-top:18px}
-.foot button{flex:1}
+body{margin:0;background:#f1f4f7;color:#182431;font:16px system-ui,sans-serif}
+header{background:#17324d;color:white;padding:20px}
+h1{margin:0;font-size:25px}
+main{max-width:750px;margin:auto;padding:14px}
+input,textarea,button{font:inherit;padding:12px;border-radius:9px}
+input,textarea{width:100%;border:1px solid #ccd5df;margin:5px 0 10px;background:white}
+button{border:0;background:#245d86;color:white;font-weight:600;cursor:pointer;margin:3px}
+button:disabled{opacity:.6;cursor:wait}
+button.secondary{background:#e0e8ef;color:#17324d}
+.card{background:white;border:1px solid #dce3e9;border-radius:13px;padding:14px;margin:10px 0;overflow:auto}
+.name{font-size:19px;font-weight:bold}
+.card p{overflow-wrap:anywhere}
+.actions{display:flex;flex-wrap:wrap;gap:4px;margin-top:10px}
+.actions button{flex:1}
+small{color:#667581}
+#editor{display:none;background:white;border:1px solid #ccd5df;border-radius:13px;padding:14px;margin:12px 0}
+.row{display:flex;gap:8px}
+.row>*{flex:1;min-width:0}
+#photoPreview{width:90px;height:90px;object-fit:cover;border-radius:50%;margin:8px 0}
+#photoInfo{display:block;margin-bottom:6px}
+.tabs{display:flex;gap:6px;margin:10px 0 4px}
+.tabs button{flex:1;margin:0;padding:10px 4px;font-size:14px;background:#e0e8ef;color:#17324d}
+.tabs button.active{background:#245d86;color:#fff}
+.badge{display:inline-block;font-size:12px;padding:2px 9px;border-radius:99px;background:#e0e8ef;color:#17324d;margin-left:8px;font-weight:600;vertical-align:middle}
+#selbar{display:none;position:sticky;top:0;z-index:5;background:#fff;border:1px solid #ccd5df;border-radius:13px;padding:8px;margin:10px 0;box-shadow:0 2px 8px rgba(0,0,0,.12)}
+#selbar .row{margin-top:4px}
+input.pick{width:24px;height:24px;margin:0 10px 0 0;padding:0;vertical-align:middle;display:inline-block}
+select{width:100%;font:inherit;padding:12px;border-radius:9px;border:1px solid #ccd5df;margin:5px 0 10px;background:white}
+.selfbox{display:flex;align-items:center;gap:12px;margin-top:14px;flex-wrap:wrap}
+#selfPhoto{width:96px;height:96px;object-fit:cover;border-radius:50%;border:3px solid #fff}
+button.mini{padding:8px 14px;font-size:14px;background:rgba(255,255,255,.15);color:#fff;border:1px solid rgba(255,255,255,.4);margin:0 6px 0 0}
 </style>
 </head>
 <body>
 <header>
-  <div class="hrow">
-    <label class="avatar" for="selfFile" title="Bild wählen"><img id="selfImg" alt="Mein Bild" hidden><span id="selfPh">📷</span></label>
-    <input id="selfFile" type="file" accept="image/*" hidden>
+  <h1>📇 Peters Adressbuch</h1>
+  <small style="color:#d9e7f1">Deine Kontakte. Einfach. Privat.</small>
+  <div class="selfbox">
+    <img id="selfPhoto" alt="Mein Bild" hidden>
     <div>
-      <h1>🛠️ Peters Ticketsystem</h1>
-      <small>Haustechnik · Werk 1–5</small><br>
-      <button class="lnk" id="selfChg" onclick="$('selfFile').click()">Bild hinzufügen</button><button class="lnk" id="selfRm" onclick="rmSelf()" hidden>entfernen</button>
+      <button type="button" class="mini" id="selfChoose" onclick="$('selfFile').click()">Bild wählen</button>
+      <button type="button" class="mini" id="selfRemove" onclick="removeSelfPhoto()" hidden>Entfernen</button>
     </div>
+    <input id="selfFile" type="file" accept="image/*" hidden>
   </div>
-  <div class="stats" id="stats"></div>
 </header>
 
 <main>
-  <button onclick="openSheet('')" style="width:100%;margin:0 0 10px;font-size:18px">+ Neues Ticket</button>
-  <div class="seg" id="seg"><button data-v="aktiv" onclick="setView('aktiv')">Aktiv</button><button data-v="erledigt" onclick="setView('erledigt')">✅ Erledigt-Archiv</button></div>
-  <input id="q" type="search" placeholder="🔎 Tickets suchen …" aria-label="Suchen">
-  <div class="filters">
-    <select id="fStatus" aria-label="Status"></select>
-    <select id="fWerk" aria-label="Werk"></select>
-    <select id="fPrio" aria-label="Priorität"></select>
+  <input id="search" placeholder="🔎 Kontakte suchen …" aria-label="Kontakte suchen">
+  <div class="tabs" id="tabs">
+    <button type="button" data-g="" class="active" onclick="setTab('')">Alle</button>
+    <button type="button" data-g="privat" onclick="setTab('privat')">Privat</button>
+    <button type="button" data-g="arbeit" onclick="setTab('arbeit')">Arbeit</button>
+    <button type="button" data-g="none" onclick="setTab('none')">Ohne</button>
   </div>
-  <details class="card" id="eval"><summary>📊 Auswertung nach Werk</summary><div id="evalBody"></div></details>
-  <div class="two" style="margin-bottom:10px">
-    <button class="sec" id="planBtn" onclick="openPlan()" style="margin:0;padding:12px 6px;font-size:15px">🔁 Aktive Wartungspläne</button>
-    <button class="sec" id="syncBtn" onclick="openSync()" style="margin:0;padding:12px 6px;font-size:15px">☁️ Sync: aus</button>
+  <div class="row">
+    <button type="button" onclick="newContact()">＋ Kontakt</button>
+    <button type="button" onclick="backupCSV()">Backup speichern (CSV)</button>
   </div>
-  <div id="list"></div>
+  <div class="row">
+    <button type="button" class="secondary" onclick="backup()">Backup mit Fotos (JSON)</button>
+    <button type="button" class="secondary" onclick="$('file').click()">Importieren (CSV / JSON / VCF)</button>
+    <input id="file" type="file" accept=".json,.vcf,.vcard,.csv,text/csv" hidden onchange="importFile(event)">
+  </div>
 
-  <div class="foot">
-    <button class="sec" onclick="backupCSV()">Backup (CSV)</button>
-    <button class="sec" onclick="backupJSON()">Backup (JSON)</button>
-    <button class="sec" onclick="$('file').click()">Importieren</button>
-    <input id="file" type="file" accept=".json,.csv,text/csv" hidden onchange="importFile(event)">
+  <section id="editor">
+    <h2 id="formTitle">Neuer Kontakt</h2>
+    <input id="id" type="hidden">
+
+    <label for="name">Name *</label>
+    <input id="name" placeholder="Vor- und Nachname" autocomplete="name">
+
+    <label for="photoFile">Kontaktfoto (aus der Galerie, wird automatisch verkleinert)</label>
+    <input id="photoFile" type="file" accept="image/*">
+    <small id="photoInfo"></small>
+    <img id="photoPreview" alt="Vorschau Kontaktfoto" hidden>
+    <div><button type="button" class="secondary" onclick="removePhoto()">Foto entfernen</button></div>
+
+    <label for="group">Gruppe</label>
+    <select id="group">
+      <option value="">Keine Gruppe</option>
+      <option value="privat">Privat</option>
+      <option value="arbeit">Arbeit</option>
+    </select>
+
+    <label for="company">Firma</label>
+    <input id="company" placeholder="Firma">
+
+    <label for="phone">Telefon</label>
+    <input id="phone" type="tel" placeholder="+49 …">
+
+    <label for="email">E-Mail</label>
+    <input id="email" type="email" placeholder="E-Mail-Adresse">
+
+    <label for="street">Straße und Hausnummer</label>
+    <input id="street" placeholder="Straße und Hausnummer">
+
+    <div class="row">
+      <input id="postcode" placeholder="PLZ" aria-label="Postleitzahl">
+      <input id="city" placeholder="Ort" aria-label="Ort">
+    </div>
+
+    <label for="notes">Notizen</label>
+    <textarea id="notes" rows="3" placeholder="Notizen"></textarea>
+
+    <button type="button" id="saveBtn" onclick="saveContact()">Speichern</button>
+    <button type="button" class="secondary" onclick="closeEditor()">Abbrechen</button>
+  </section>
+
+  <div class="row">
+    <button type="button" class="secondary" id="selToggle" onclick="toggleSelect()">☑ Mehrere auswählen &amp; verschieben</button>
   </div>
-  <p><small class="meta">Die Tickets liegen nur in diesem Browser auf deinem Gerät. Bitte regelmäßig ein Backup erstellen.<br>Version 2026-10-14b (Sync)</small></p>
+  <div id="selbar">
+    <div><b id="selInfo">0 ausgewählt</b></div>
+    <div class="row">
+      <button type="button" onclick="moveSelected('privat')">→ Privat</button>
+      <button type="button" onclick="moveSelected('arbeit')">→ Arbeit</button>
+    </div>
+    <div class="row">
+      <button type="button" class="secondary" onclick="selectAllVisible()">Alle angezeigten</button>
+      <button type="button" class="secondary" onclick="moveSelected('')">Gruppe entfernen</button>
+    </div>
+    <div class="row">
+      <button type="button" class="secondary" onclick="toggleSelect()">Fertig</button>
+    </div>
+  </div>
+
+  <p id="count"><small>Kontakte werden lokal gespeichert.</small></p>
+  <section id="contacts"></section>
+  <p><small>Die Kontakte bleiben in diesem Browser auf deinem Gerät. Bitte regelmäßig ein Backup erstellen. Das CSV-Backup enthält alle Kontaktdaten, aber keine Fotos. Das JSON-Backup enthält zusätzlich die Fotos und dein Bild.</small></p>
+  <p><small>Version 2026-10-13b (CSV-Backup, Gruppen)</small></p>
 </main>
-
-
-<div id="sheet"><div class="in">
-  <h2 id="sTitle">Neues Ticket</h2>
-  <input id="f_id" type="hidden">
-  <label for="f_title">Titel *</label>
-  <input id="f_title" placeholder="z. B. Heizung Halle 3 fällt aus">
-  <div class="two">
-    <div><label for="f_werk">Werk</label><select id="f_werk"></select></div>
-    <div><label for="f_prio">Priorität</label><select id="f_prio"></select></div>
-  </div>
-  <label for="f_status">Status</label>
-  <select id="f_status"></select>
-  <label for="f_from">Von (E-Mail-Absender)</label>
-  <input id="f_from" list="senders" placeholder="Name des Absenders">
-  <datalist id="senders"></datalist>
-  <div class="two">
-    <div><label for="f_mail">Mail vom</label><input id="f_mail" type="date"></div>
-    <div><label for="f_due">Fällig bis</label><input id="f_due" type="date"></div>
-  </div>
-  <label for="f_desc">Beschreibung</label>
-  <textarea id="f_desc" rows="4" placeholder="Was ist zu tun?"></textarea>
-  <label>Benötigte Teile <small class="meta">(Tippen wechselt: ⬜ offen → 📦 bestellt → ✅ da)</small></label>
-  <div id="plist"></div>
-  <div class="two"><input id="pnew" placeholder="Teil eintragen" onkeydown="if(event.key==='Enter'){addPart();event.preventDefault()}"><button class="sec" onclick="addPart()" style="margin:4px 0 10px">＋ Teil</button></div>
-  <label>Fotos (max. 4)</label>
-  <div id="phlist" class="thumbs"></div>
-  <input id="phfile" type="file" accept="image/*" multiple hidden onchange="addPhotos(event)">
-  <button class="sec" onclick="$('phfile').click()" style="margin:4px 0 12px">📷 Foto hinzufügen</button><br>
-  <label for="f_notes">Notizen</label>
-  <textarea id="f_notes" rows="3"></textarea>
-  <div id="histBox" hidden><label>Verlauf</label><ul class="hist" id="hist"></ul></div>
-  <button onclick="saveTicket()">Speichern</button>
-  <button class="sec" onclick="closeSheet()">Abbrechen</button>
-  <button class="del" id="delBtn" onclick="delTicket()">Löschen</button>
-</div></div>
-
-<div id="plan"><div class="in">
-  <h2>🔁 Aktive Wartungspläne</h2>
-  <small class="meta">Ist eine Wartung fällig, legt die App beim Öffnen automatisch ein Ticket an.</small>
-  <div id="planList"></div>
-  <h3>Neue wiederkehrende Aufgabe</h3>
-  <input id="p_title" placeholder="z. B. Legionellenprobe">
-  <div class="two"><select id="p_werk"></select><select id="p_prio"></select></div>
-  <select id="p_int"></select>
-  <label for="p_next">Erste Fälligkeit</label>
-  <input id="p_next" type="date">
-  <button onclick="addPlan()">Hinzufügen</button>
-  <button class="sec" onclick="$('plan').style.display='none'">Schließen</button>
-</div></div>
-<div id="lb" onclick="this.style.display='none'"><img id="lbi" alt="Foto"></div>
-
-<div id="syncs"><div class="in">
-  <h2>☁️ Synchronisierung</h2>
-  <p class="meta" id="syncInfo"></p>
-  <label for="s_cfg">Firebase-Konfiguration (den Block „firebaseConfig“ einfügen)</label>
-  <textarea id="s_cfg" rows="7" placeholder='const firebaseConfig = { apiKey: "…", authDomain: "…", projectId: "…", appId: "…" };'></textarea>
-  <label for="s_mail">E-Mail</label>
-  <input id="s_mail" type="email" autocomplete="username">
-  <label for="s_pw">Passwort</label>
-  <input id="s_pw" type="password" autocomplete="current-password">
-  <button onclick="connectSync()">Verbinden</button>
-  <button class="sec" onclick="disconnectSync()">Abmelden / Sync aus</button>
-  <button class="sec" onclick="$('syncs').style.display='none'">Schließen</button>
-</div></div>
 
 <script>
 "use strict";
+
 const $ = id => document.getElementById(id);
-const KEY = "petersTickets";
-const ST = {offen:"Offen", bearbeitung:"In Bearbeitung", teil:"Teil bestellt", angebot:"Angebot angefordert", pr:"PR erstellt", dienstleister:"Dienstleister beauftragt", warten:"Wartet auf Rückmeldung", erledigt:"Erledigt"};
-const PR = {dringend:"Dringend", hoch:"Hoch", normal:"Normal", niedrig:"Niedrig"};
-const PO = {dringend:0, hoch:1, normal:2, niedrig:3};
-const K = ["title","werk","prio","status","from","mail","due","desc","notes"];
-let db = {next: 1, tickets: [], plans: []};
-let editPl = [], editPh = [];
+const fields = ["name","company","phone","email","street","postcode","city","notes"];
+const STORAGE_KEY = "petersKontakte";
+const SELF_KEY = "petersProfilFoto";
+const DEFAULT_COUNTRY_CODE = "49";   // wird bei Nummern mit 0 am Anfang für WhatsApp ergänzt (49 = Deutschland)
+
+// Foto-Einstellungen: Fotos werden vor dem Speichern verkleinert
+const PHOTO_MAX_INPUT_MB = 40;      // größere Originaldateien werden abgelehnt
+const PHOTO_TARGET_CHARS = 40000;   // Ziel: ca. 30 KB pro Foto
+const PHOTO_SHRINK_ABOVE = 60000;   // bereits gespeicherte Fotos darüber werden nachträglich verkleinert
+const PHOTO_STEPS = [               // [maximale Kantenlänge, JPEG-Qualität]
+  [320, 0.80], [320, 0.65], [256, 0.60], [200, 0.50]
+];
+
+const GROUPS = {privat: "Privat", arbeit: "Arbeit"};
+let currentTab = "";          // "", "privat", "arbeit" oder "none" (ohne Gruppe)
+let selectMode = false;
+const selected = new Set();
+
+let contacts = [];
+let currentPhoto = "";
+
+function normalizeGroup(value) {
+  const v = String(value || "").trim().toLowerCase();
+  if (v === "privat" || v === "private" || v === "privatperson") return "privat";
+  if (v === "arbeit" || v === "work" || v === "beruf" || v === "geschäftlich") return "arbeit";
+  return "";
+}
+
+// Aus Google-Labels (z. B. "* myContacts ::: Arbeit") bzw. VCF-Kategorien die Gruppe lesen
+function groupFromLabels(text) {
+  const tokens = String(text || "").split(/:::|,|;/);
+  for (const token of tokens) {
+    const g = normalizeGroup(token.replace(/^\*\s*/, ""));
+    if (g) return g;
+  }
+  return "";
+}
 
 try {
-  const s = JSON.parse(localStorage.getItem(KEY) || "null");
-  if (s && Array.isArray(s.tickets)) db = s;
-} catch (e) {}
-if (!Array.isArray(db.plans)) db.plans = [];
-db.tickets.forEach(t => {
-  if (!Array.isArray(t.pl)) t.pl = parseParts(t.parts);
-  if (!Array.isArray(t.photos)) t.photos = [];
+  const stored = JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]");
+  contacts = Array.isArray(stored) ? stored : [];
+} catch (error) {
+  contacts = [];
+}
+
+/* ---------- Speichern ---------- */
+
+function persist() {
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(contacts));
+    return true;
+  } catch (error) {
+    alert("Speichern nicht möglich: Der Browser-Speicher ist voll.\n\nBitte zuerst ein Backup erstellen und dann einige Fotos oder Kontakte löschen.");
+    return false;
+  }
+}
+
+function makeId() {
+  return Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
+}
+
+function esc(value) {
+  return String(value || "").replace(/[&<>"']/g, char => ({
+    "&":"&amp;", "<":"&lt;", ">":"&gt;", '"':"&quot;", "'":"&#39;"
+  }[char]));
+}
+
+function validPhoto(value) {
+  return typeof value === "string" && /^data:image\/(jpeg|png|webp|gif);base64,/i.test(value);
+}
+
+/* ---------- Fotos verkleinern ---------- */
+
+function loadImage(src) {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    img.onload = () => resolve(img);
+    img.onerror = () => reject(new Error("Bild konnte nicht gelesen werden"));
+    img.src = src;
+  });
+}
+
+async function shrinkImage(src) {
+  const img = await loadImage(src);
+  const width = img.naturalWidth || img.width;
+  const height = img.naturalHeight || img.height;
+  if (!width || !height) throw new Error("Ungültige Bildgröße");
+
+  let result = "";
+  for (const [maxSide, quality] of PHOTO_STEPS) {
+    const scale = Math.min(1, maxSide / Math.max(width, height));
+    const canvas = document.createElement("canvas");
+    canvas.width = Math.max(1, Math.round(width * scale));
+    canvas.height = Math.max(1, Math.round(height * scale));
+    const ctx = canvas.getContext("2d");
+    ctx.fillStyle = "#ffffff";
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+    result = canvas.toDataURL("image/jpeg", quality);
+    if (result.length <= PHOTO_TARGET_CHARS) break;
+  }
+  return result;
+}
+
+function readFileAsDataURL(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(reader.result);
+    reader.onerror = () => reject(new Error("Datei konnte nicht gelesen werden"));
+    reader.readAsDataURL(file);
+  });
+}
+
+function setPhotoPreview(src) {
+  if (src) {
+    $("photoPreview").src = src;
+    $("photoPreview").hidden = false;
+  } else {
+    $("photoPreview").removeAttribute("src");
+    $("photoPreview").hidden = true;
+  }
+}
+
+$("photoFile").addEventListener("change", async function () {
+  const file = this.files && this.files[0];
+  if (!file) return;
+
+  if (!file.type.startsWith("image/")) {
+    alert("Bitte eine Bilddatei auswählen.");
+    this.value = "";
+    return;
+  }
+  if (file.size > PHOTO_MAX_INPUT_MB * 1024 * 1024) {
+    alert("Das Foto ist extrem groß (über " + PHOTO_MAX_INPUT_MB + " MB). Bitte ein anderes Foto wählen.");
+    this.value = "";
+    return;
+  }
+
+  $("saveBtn").disabled = true;
+  $("photoInfo").textContent = "Foto wird verkleinert …";
+  try {
+    const original = await readFileAsDataURL(file);
+    currentPhoto = await shrinkImage(original);
+    setPhotoPreview(currentPhoto);
+    $("photoInfo").textContent =
+      "Foto verkleinert: " + Math.round(file.size / 1024) + " KB → " +
+      Math.round(currentPhoto.length * 0.75 / 1024) + " KB";
+  } catch (error) {
+    currentPhoto = "";
+    setPhotoPreview("");
+    $("photoInfo").textContent = "";
+    alert("Das Foto konnte nicht verarbeitet werden. Bitte als JPG oder PNG versuchen.");
+    this.value = "";
+  } finally {
+    $("saveBtn").disabled = false;
+  }
 });
 
-function save() {
-  try { localStorage.setItem(KEY, JSON.stringify(db)); setTimeout(syncLocal, 0); return true; }
-  catch (e) { alert("Speichern nicht möglich: Speicher voll. Bitte Backup erstellen und alte erledigte Tickets löschen."); return false; }
+function removePhoto() {
+  currentPhoto = "";
+  $("photoFile").value = "";
+  $("photoInfo").textContent = "";
+  setPhotoPreview("");
 }
-const esc = v => String(v || "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
-const fd = s => s ? s.split("-").reverse().join(".") : "";
-const now = () => new Date().toISOString();
-const ft = t => new Date(t).toLocaleString("de-DE", {day:"2-digit", month:"2-digit", hour:"2-digit", minute:"2-digit"});
-const today = () => new Date().toLocaleDateString("sv-SE");
-const doneAt = t => { const h = (t.history || []).filter(x => x.s === "erledigt"); return h.length ? h[h.length - 1].t : t.created; };
-function setView(v) { $("fStatus").value = v; render(); }
-const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
-const opts = (o, first) => (first ? `<option value="">${first}</option>` : "") + Object.keys(o).map(k => `<option value="${k}">${o[k]}</option>`).join("");
 
-$("fStatus").innerHTML = `<option value="aktiv">Aktive</option><option value="alle">Alle</option>` + opts(ST);
-$("fWerk").innerHTML = opts({1:"Werk 1",2:"Werk 2",3:"Werk 3",4:"Werk 4",5:"Werk 5"}, "Alle Werke");
-$("fPrio").innerHTML = opts(PR, "Alle Prios");
-$("f_werk").innerHTML = opts({1:"Werk 1",2:"Werk 2",3:"Werk 3",4:"Werk 4",5:"Werk 5"});
-$("f_prio").innerHTML = opts(PR);
-$("f_status").innerHTML = opts(ST);
+// Bereits gespeicherte, zu große Fotos nachträglich verkleinern
+async function shrinkStoredPhotos() {
+  let changed = false;
+  for (const contact of contacts) {
+    if (validPhoto(contact.photo) && contact.photo.length > PHOTO_SHRINK_ABOVE) {
+      try {
+        const smaller = await shrinkImage(contact.photo);
+        if (smaller.length < contact.photo.length) {
+          contact.photo = smaller;
+          changed = true;
+        }
+      } catch (error) {
+        /* Foto unverändert lassen */
+      }
+    }
+  }
+  if (changed) {
+    try { localStorage.setItem(STORAGE_KEY, JSON.stringify(contacts)); } catch (error) {}
+    render();
+  }
+}
+
+/* ---------- Anzeige ---------- */
 
 function render() {
-  const q = $("q").value.trim().toLowerCase(), fs = $("fStatus").value, fw = $("fWerk").value, fp = $("fPrio").value;
-  const list = db.tickets.filter(t =>
-    (fs === "alle" || (fs === "aktiv" ? t.status !== "erledigt" : t.status === fs)) &&
-    (!fw || t.werk === fw) && (!fp || t.prio === fp) &&
-    (!q || [t.title, t.desc, t.from, partsText(t), t.notes, "werk " + t.werk, "#" + t.no].join(" ").toLowerCase().includes(q))
-  ).sort((a, b) =>
-    (fs === "erledigt" ? doneAt(b).localeCompare(doneAt(a)) : 0) ||
-    ((a.status === "erledigt") - (b.status === "erledigt")) || (PO[a.prio] - PO[b.prio]) ||
-    String(a.due || "9").localeCompare(String(b.due || "9")) || b.created.localeCompare(a.created));
+  const query = $("search").value.trim().toLocaleLowerCase("de");
+  const list = contacts
+    .filter(contact => {
+      const g = normalizeGroup(contact.group);
+      if (currentTab === "none") return !g;
+      return !currentTab || g === currentTab;
+    })
+    .filter(contact => fields.some(key =>
+      String(contact[key] || "").toLocaleLowerCase("de").includes(query)
+    ))
+    .sort((a, b) => String(a.name || "").localeCompare(String(b.name || ""), "de"));
 
-  const act = db.tickets.filter(t => t.status !== "erledigt");
-  const late = act.filter(t => t.due && t.due < today()).length;
-  document.querySelectorAll("#seg button").forEach(b => {
-    const a = b.dataset.v === "aktiv";
-    b.textContent = (a ? "Aktiv (" + act.length : "✅ Erledigt-Archiv (" + (db.tickets.length - act.length)) + ")";
-    b.classList.toggle("on", $("fStatus").value === b.dataset.v);
-  });
-  $("stats").innerHTML =
-    `<span class="stat"><b>${act.length}</b>aktiv</span>` +
-    `<span class="stat"><b>${act.filter(t => t.prio === "dringend").length}</b>dringend</span>` +
-    `<span class="stat"><b>${act.filter(t => t.status === "teil").length}</b>Teil bestellt</span>` +
-    (late ? `<span class="stat"><b>${late}</b>überfällig</span>` : "");
+  $("count").textContent = list.length + (list.length === 1 ? " Kontakt" : " Kontakte");
+  updateTabs();
+  updateSelInfo();
 
-  const senders = [...new Set(db.tickets.map(t => t.from).filter(Boolean))].sort();
-  $("senders").innerHTML = senders.map(s => `<option value="${esc(s)}">`).join("");
+  $("contacts").innerHTML = list.map(contact => {
+    const address = [
+      contact.street,
+      [contact.postcode, contact.city].filter(Boolean).join(" ")
+    ].filter(Boolean).join(", ");
 
-  renderEval();
-  $("planBtn").textContent = "🔁 Aktive Wartungspläne (" + db.plans.length + ")";
-  $("list").innerHTML = list.map(t => {
-    const isLate = t.due && t.due < today() && t.status !== "erledigt";
-    const meta = ["Werk " + t.werk, t.from ? "von " + t.from : "", t.mail ? "Mail " + fd(t.mail) : "",
-      t.due ? (isLate ? `<span class="late">überfällig seit ${fd(t.due)}</span>` : "fällig " + fd(t.due)) : "",
-      t.status === "erledigt" ? "erledigt am " + new Date(doneAt(t)).toLocaleDateString("de-DE") : ""]
-      .filter(Boolean).map((x, i) => i === 0 || x.startsWith("<") ? x : esc(x)).join(" · ");
-    return `<article class="card p-${t.prio}${t.status === "erledigt" ? " done" : ""}">
-      <div class="top"><div class="title">#${t.no} ${esc(t.title)}</div><span class="badge pr-${t.prio}">${PR[t.prio]}</span></div>
-      <div class="meta">${meta}</div>
-      <div><span class="badge s-${t.status}">${ST[t.status]}</span></div>
-      ${t.desc ? `<div class="txt">${esc(t.desc)}</div>` : ""}
-      ${t.pl && t.pl.length ? `<div class="meta">🔧 ${t.pl.map(p => ["⬜","📦","✅"][p.s] + " " + esc(p.n)).join(" · ")}</div>` : ""}
-      ${(t.photos || []).map(p => `<img class="mini" src="${p}" onclick="showImg(this.src)" alt="Foto">`).join("")}
-      <div class="act">
-        <select onchange="setStatus('${t.id}', this.value)" aria-label="Status ändern">${opts(ST).replace(`value="${t.status}"`, `value="${t.status}" selected`)}</select>
-        <button class="sec" onclick="openSheet('${t.id}')">Öffnen</button>
+    const photo = validPhoto(contact.photo)
+      ? `<img src="${esc(contact.photo)}" alt="Kontaktfoto" style="width:64px;height:64px;object-fit:cover;border-radius:50%;float:right;margin-left:10px">`
+      : "";
+
+    return `<article class="card">
+      ${photo}
+      <div class="name">${selectMode ? `<input type="checkbox" class="pick" ${selected.has(String(contact.id)) ? "checked" : ""} onchange="togglePick('${esc(contact.id)}', this.checked)" aria-label="Auswählen">` : ""}${esc(contact.name)}${GROUPS[normalizeGroup(contact.group)] ? `<span class="badge">${GROUPS[normalizeGroup(contact.group)]}</span>` : ""}</div>
+      ${contact.company ? `<div>${esc(contact.company)}</div>` : ""}
+      ${contact.phone ? `<p>☎ ${esc(contact.phone)}</p>` : ""}
+      ${contact.email ? `<p>✉ <a href="mailto:${esc(contact.email)}">${esc(contact.email)}</a></p>` : ""}
+      ${address ? `<p>📍 ${esc(address)}</p>` : ""}
+      ${contact.notes ? `<p>${esc(contact.notes).replace(/\n/g, "<br>")}</p>` : ""}
+      <div class="actions">
+        ${contact.phone ? `<button type="button" onclick="callContact('${esc(contact.id)}')">Anrufen</button>
+        <button type="button" onclick="whatsapp('${esc(contact.id)}')">WhatsApp</button>` : ""}
+        ${normalizeGroup(contact.group) !== "privat" ? `<button type="button" class="secondary" onclick="moveContact('${esc(contact.id)}','privat')">→ Privat</button>` : ""}
+        ${normalizeGroup(contact.group) !== "arbeit" ? `<button type="button" class="secondary" onclick="moveContact('${esc(contact.id)}','arbeit')">→ Arbeit</button>` : ""}
+        <button type="button" class="secondary" onclick="editContact('${esc(contact.id)}')">Bearbeiten</button>
+        <button type="button" class="secondary" onclick="deleteContact('${esc(contact.id)}')">Löschen</button>
+        ${address ? `<button type="button" class="secondary" onclick="maps('${esc(contact.id)}')">Karte</button>` : ""}
       </div>
     </article>`;
-  }).join("") || `<div class="card">Keine Tickets gefunden. Mit „+ Neues Ticket“ legst du ein neues an.</div>`;
+  }).join("") || "<div class='card'>Keine Kontakte gefunden. Lege deinen ersten Kontakt an.</div>";
 }
 
-function openSheet(id) {
-  const t = db.tickets.find(x => x.id === id);
-  $("sTitle").textContent = t ? "Ticket #" + t.no : "Neues Ticket";
-  $("f_id").value = t ? t.id : "";
-  K.forEach(k => $("f_" + k).value = t ? (t[k] || "") : "");
-  if (!t) { $("f_werk").value = "1"; $("f_prio").value = "normal"; $("f_status").value = "offen"; $("f_mail").value = today(); }
-  editPl = t ? t.pl.map(p => ({n: p.n, s: p.s})) : [];
-  editPh = t ? t.photos.slice() : [];
-  renderParts(); renderPhotos();
-  $("histBox").hidden = !t;
-  $("hist").innerHTML = t ? t.history.slice().reverse().map(h => `<li>${ft(h.t)} – ${ST[h.s] || esc(h.s)}</li>`).join("") : "";
-  $("delBtn").style.display = t ? "" : "none";
-  $("sheet").style.display = "block";
-  $("sheet").scrollTop = 0;
-  if (!t) $("f_title").focus();
+function newContact() {
+  $("formTitle").textContent = "Neuer Kontakt";
+  $("id").value = "";
+  fields.forEach(key => $(key).value = "");
+  $("group").value = (currentTab === "privat" || currentTab === "arbeit") ? currentTab : "";
+  removePhoto();
+  $("editor").style.display = "block";
+  window.scrollTo({top: 0, behavior: "smooth"});
+  $("name").focus();
 }
-function closeSheet() { $("sheet").style.display = "none"; }
 
-function saveTicket() {
-  const v = {};
-  K.forEach(k => v[k] = $("f_" + k).value.trim());
-  v.pl = editPl; v.photos = editPh;
-  if (!v.title) { alert("Bitte einen Titel eingeben."); $("f_title").focus(); return; }
-  const snapshot = JSON.stringify(db), id = $("f_id").value;
-  const t = db.tickets.find(x => x.id === id);
-  if (t) {
-    if (t.status !== v.status) t.history.push({t: now(), s: v.status});
-    Object.assign(t, v);
-  } else {
-    db.tickets.push(Object.assign({id: uid(), no: db.next++, created: now(), history: [{t: now(), s: v.status}]}, v));
+function editContact(id) {
+  const contact = contacts.find(item => String(item.id) === String(id));
+  if (!contact) return;
+
+  $("formTitle").textContent = "Kontakt bearbeiten";
+  $("id").value = contact.id;
+  fields.forEach(key => $(key).value = contact[key] || "");
+  $("group").value = normalizeGroup(contact.group);
+  currentPhoto = validPhoto(contact.photo) ? contact.photo : "";
+  $("photoFile").value = "";
+  $("photoInfo").textContent = "";
+  setPhotoPreview(currentPhoto);
+
+  $("editor").style.display = "block";
+  window.scrollTo({top: 0, behavior: "smooth"});
+}
+
+function closeEditor() {
+  $("editor").style.display = "none";
+}
+
+function saveContact() {
+  const contact = {id: $("id").value || makeId()};
+  fields.forEach(key => contact[key] = $(key).value.trim());
+  contact.photo = currentPhoto;
+  contact.group = normalizeGroup($("group").value);
+
+  if (!contact.name) {
+    alert("Bitte einen Namen eingeben.");
+    $("name").focus();
+    return;
   }
-  if (!save()) { db = JSON.parse(snapshot); return; }
-  closeSheet();
+
+  const previous = contacts.slice();
+  const index = contacts.findIndex(item => String(item.id) === String(contact.id));
+  if (index >= 0) contacts[index] = contact;
+  else contacts.push(contact);
+
+  if (!persist()) {
+    contacts = previous;   // nichts verlieren, Editor bleibt offen
+    return;
+  }
+  closeEditor();
   render();
 }
 
-function setStatus(id, s) {
-  const t = db.tickets.find(x => x.id === id);
-  if (!t || t.status === s) return;
-  const snapshot = JSON.stringify(db);
-  t.status = s;
-  t.history.push({t: now(), s: s});
-  if (!save()) db = JSON.parse(snapshot);
-  render();
-}
-
-function delTicket() {
-  const t = db.tickets.find(x => x.id === $("f_id").value);
-  if (!t || !confirm("Ticket #" + t.no + " wirklich löschen?")) return;
-  db.tickets = db.tickets.filter(x => x.id !== t.id);
-  save();
-  closeSheet();
-  render();
-}
-
-/* ---------- Teile, Fotos ---------- */
-
-const PE = ["⬜", "📦", "✅"], PN = ["", "bestellt", "da"];
-function parseParts(text) {
-  return String(text || "").split(/\r?\n/).map(l => l.trim()).filter(Boolean).map(l => {
-    const m = l.match(/^(.*?)\s*\((bestellt|da)\)$/i);
-    return m ? {n: m[1], s: m[2].toLowerCase() === "da" ? 2 : 1} : {n: l, s: 0};
-  });
-}
-const partsText = t => (t.pl || []).map(p => p.n + (p.s ? " (" + PN[p.s] + ")" : "")).join("\n");
-function renderParts() {
-  $("plist").innerHTML = editPl.map((p, i) =>
-    `<div class="pi" onclick="cycPart(${i})"><span>${PE[p.s]} ${esc(p.n)}</span><b onclick="event.stopPropagation();delPart(${i})">✕</b></div>`).join("");
-}
-function addPart() {
-  const v = $("pnew").value.trim();
-  if (!v) return;
-  editPl.push({n: v, s: 0});
-  $("pnew").value = "";
-  renderParts();
-}
-function cycPart(i) { editPl[i].s = (editPl[i].s + 1) % 3; renderParts(); }
-function delPart(i) { editPl.splice(i, 1); renderParts(); }
-
-function shrink(file, max, q) {
-  return new Promise((res, rej) => {
-    const r = new FileReader();
-    r.onload = () => {
-      const i = new Image();
-      i.onload = () => {
-        const s = Math.min(1, (max || 640) / Math.max(i.width, i.height)), c = document.createElement("canvas");
-        c.width = Math.round(i.width * s); c.height = Math.round(i.height * s);
-        c.getContext("2d").drawImage(i, 0, 0, c.width, c.height);
-        res(c.toDataURL("image/jpeg", q || 0.7));
-      };
-      i.onerror = rej; i.src = r.result;
-    };
-    r.onerror = rej; r.readAsDataURL(file);
-  });
-}
-async function addPhotos(e) {
-  for (const f of e.target.files) {
-    if (editPh.length >= 4) { alert("Maximal 4 Fotos pro Ticket."); break; }
-    try { editPh.push(await shrink(f)); } catch (x) { alert("Ein Foto konnte nicht verarbeitet werden."); }
-  }
-  e.target.value = "";
-  renderPhotos();
-}
-function renderPhotos() {
-  $("phlist").innerHTML = editPh.map((p, i) =>
-    `<span class="th"><img src="${p}" onclick="showImg(this.src)" alt="Foto"><b onclick="delPh(${i})">✕</b></span>`).join("");
-}
-function delPh(i) { if (confirm("Foto entfernen?")) { editPh.splice(i, 1); renderPhotos(); } }
-function showImg(src) { $("lbi").src = src; $("lb").style.display = "flex"; }
-
-/* ---------- Auswertung, Wartungsplan ---------- */
-
-function renderEval() {
-  let h = `<table class="ev"><tr><th>Werk</th><th>Aktiv</th><th>Dringend</th><th>Teil</th><th>Erledigt</th></tr>`;
-  for (let w = 1; w <= 5; w++) {
-    const a = db.tickets.filter(t => t.werk === String(w));
-    const act = a.filter(t => t.status !== "erledigt");
-    h += `<tr><td>Werk ${w}</td><td>${act.length}</td><td>${act.filter(t => t.prio === "dringend").length}</td><td>${act.filter(t => t.status === "teil").length}</td><td>${a.length - act.length}</td></tr>`;
-  }
-  $("evalBody").innerHTML = h + "</table>";
-}
-
-const INT = {d7: "Wöchentlich", d14: "Alle 2 Wochen", m1: "Monatlich", m3: "Vierteljährlich", m6: "Halbjährlich", m12: "Jährlich"};
-$("p_int").innerHTML = opts(INT);
-$("p_int").value = "m1";
-$("p_werk").innerHTML = opts({1:"Werk 1",2:"Werk 2",3:"Werk 3",4:"Werk 4",5:"Werk 5"});
-$("p_prio").innerHTML = opts(PR);
-$("p_prio").value = "normal";
-
-function addInt(date, code) {
-  const d = new Date(date + "T12:00:00"), n = +code.slice(1);
-  if (code[0] === "d") d.setDate(d.getDate() + n); else d.setMonth(d.getMonth() + n);
-  return d.toLocaleDateString("sv-SE");
-}
-function newTicket(o) {
-  const t = Object.assign(clean({}), o);
-  t.no = db.next++;
-  t.history = [{t: now(), s: "offen"}];
-  return t;
-}
-function runPlans() {
-  let made = 0;
-  db.plans.forEach(p => {
-    if (p.next > today()) return;
-    db.tickets.push(newTicket({title: p.title, werk: p.werk, prio: p.prio, status: "offen", from: "Wartungsplan", due: p.next, desc: "Wiederkehrende Wartung (" + INT[p.int] + ")"}));
-    made++;
-    for (let g = 0; p.next <= today() && g < 400; g++) p.next = addInt(p.next, p.int);
-  });
-  if (made) save();
-  return made;
-}
-function renderPlan() {
-  $("planList").innerHTML = db.plans.map((p, i) =>
-    `<div class="pi" style="cursor:default"><span><b style="padding:0;color:inherit">${esc(p.title)}</b><br><small class="meta">Werk ${p.werk} · ${INT[p.int]} · nächste: ${fd(p.next)}</small></span><b onclick="delPlan(${i})">✕</b></div>`).join("")
-    || `<p class="meta">Noch keine wiederkehrenden Aufgaben.</p>`;
-}
-function openPlan() { renderPlan(); $("plan").style.display = "block"; $("plan").scrollTop = 0; }
-function addPlan() {
-  const title = $("p_title").value.trim();
-  if (!title) { alert("Bitte einen Titel eingeben."); return; }
-  const snapshot = JSON.stringify(db);
-  db.plans.push({id: uid(), title: title, werk: $("p_werk").value, prio: $("p_prio").value, int: $("p_int").value, next: $("p_next").value || today()});
-  runPlans();
-  if (!save()) { db = JSON.parse(snapshot); return; }
-  $("p_title").value = ""; $("p_next").value = "";
-  renderPlan(); render();
-}
-function delPlan(i) {
-  if (!confirm("Wiederkehrende Aufgabe löschen? Bereits erzeugte Tickets bleiben erhalten.")) return;
-  db.plans.splice(i, 1); save(); renderPlan();
-}
-
-/* ---------- Backup / Import ---------- */
-
-function saveBlob(blob, name) {
-  const url = URL.createObjectURL(blob), a = document.createElement("a");
-  a.href = url; a.download = name; a.style.display = "none";
-  document.body.appendChild(a); a.click();
-  setTimeout(() => { a.remove(); URL.revokeObjectURL(url); }, 10000);
-}
-function backupJSON() {
-  saveBlob(new Blob([JSON.stringify({format: "PetersTicketsystem", ...db}, null, 2)], {type: "application/json"}), "peters-tickets-backup-" + today() + ".json");
-}
-const CSVH = ["Nr","Titel","Werk","Von","Mail vom","Priorität","Status","Fällig bis","Beschreibung","Teile","Notizen","Erstellt"];
-function backupCSV() {
-  if (!db.tickets.length) { alert("Es gibt noch keine Tickets zum Sichern."); return; }
-  const c = v => { const s = String(v || ""); return /[";\r\n]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s; };
-  const rows = db.tickets.map(t => [t.no, t.title, t.werk, t.from, t.mail, PR[t.prio], ST[t.status], t.due, t.desc, partsText(t), t.notes, t.created].map(c).join(";"));
-  saveBlob(new Blob(["\uFEFF" + [CSVH.map(c).join(";")].concat(rows).join("\r\n")], {type: "text/csv;charset=utf-8"}), "peters-tickets-backup-" + today() + ".csv");
-}
-function parseCSV(t, d) {
-  const r = []; let row = [], f = "", q = false;
-  for (let i = 0; i < t.length; i++) {
-    const c = t[i];
-    if (q) { if (c === '"') { if (t[i + 1] === '"') { f += '"'; i++; } else q = false; } else f += c; }
-    else if (c === '"') q = true;
-    else if (c === d) { row.push(f); f = ""; }
-    else if (c === "\n" || c === "\r") { if (c === "\r" && t[i + 1] === "\n") i++; row.push(f); f = ""; r.push(row); row = []; }
-    else f += c;
-  }
-  if (f !== "" || row.length) { row.push(f); r.push(row); }
-  return r.filter(x => x.some(c => c.trim()));
-}
-const rev = (o, label) => Object.keys(o).find(k => o[k].toLowerCase() === String(label || "").trim().toLowerCase() || k === String(label || "").trim().toLowerCase()) || "";
-
-function clean(r) {
-  const t = {id: r.id || uid(), no: Number(r.no) || 0, created: r.created || now(), history: Array.isArray(r.history) ? r.history : []};
-  K.forEach(k => t[k] = String(r[k] || "").trim());
-  t.pl = Array.isArray(r.pl) ? r.pl.map(p => ({n: String(p.n || ""), s: Math.min(2, +p.s || 0)})).filter(p => p.n) : parseParts(r.parts);
-  t.photos = Array.isArray(r.photos) ? r.photos.filter(p => /^data:image\/jpeg;base64,/.test(p)).slice(0, 4) : [];
-  t.werk = ["1","2","3","4","5"].includes(t.werk) ? t.werk : "1";
-  t.prio = PR[t.prio] ? t.prio : "normal";
-  t.status = ST[t.status] ? t.status : "offen";
-  if (!t.title) t.title = "Importiertes Ticket";
-  if (!t.history.length) t.history.push({t: t.created, s: t.status});
-  return t;
-}
-
-async function importFile(e) {
-  const file = e.target.files && e.target.files[0];
-  if (!file) return;
-  try {
-    const text = new TextDecoder("utf-8").decode(new Uint8Array(await file.arrayBuffer()));
-    let inc = [], pin = [];
-    if (/\.json$/i.test(file.name)) {
-      const d = JSON.parse(text);
-      inc = Array.isArray(d) ? d : d.tickets;
-      pin = Array.isArray(d.plans) ? d.plans : [];
-      if (!Array.isArray(inc)) throw new Error("Ungültige Backup-Datei");
-    } else {
-      const rows = parseCSV(text, (text.split(/\r?\n/)[0].match(/;/g) || []).length >= (text.split(/\r?\n/)[0].match(/,/g) || []).length ? ";" : ",");
-      if (rows.length < 2) throw new Error("Keine Tickets in der Datei.");
-      const h = rows[0].map(x => x.replace(/^\uFEFF/, "").trim().toLowerCase());
-      const col = (r, n) => { const i = h.indexOf(n); return i < 0 ? "" : r[i]; };
-      inc = rows.slice(1).map(r => ({
-        no: col(r, "nr"), title: col(r, "titel"), werk: col(r, "werk"), from: col(r, "von"), mail: col(r, "mail vom"),
-        prio: rev(PR, col(r, "priorität")), status: rev(ST, col(r, "status")) || (/teil muss/i.test(col(r, "status")) ? "teil" : ""), due: col(r, "fällig bis"),
-        desc: col(r, "beschreibung"), parts: col(r, "teile"), notes: col(r, "notizen"), created: col(r, "erstellt")
-      }));
-    }
-    if (!inc.length) throw new Error("Keine Tickets in der Datei gefunden.");
-    if (!confirm(inc.length + " Tickets gefunden. Importieren?")) return;
-
-    const snapshot = JSON.stringify(db), key = t => [t.title, t.from, t.mail, t.werk].join("|").toLowerCase();
-    const known = new Set(db.tickets.map(key));
-    const ids = new Set(db.tickets.map(t => t.id));
-    let added = 0;
-    inc.forEach(r => {
-      const t = clean(r);
-      if (known.has(key(t)) || ids.has(t.id)) return;
-      if (!t.no || db.tickets.some(x => x.no === t.no)) t.no = db.next;
-      db.next = Math.max(db.next, t.no + 1);
-      db.tickets.push(t); known.add(key(t)); ids.add(t.id); added++;
-    });
-    pin.forEach(p => { if (p && p.title && p.next && INT[p.int] && !db.plans.some(x => x.id === p.id)) db.plans.push(p); });
-    if (!save()) { db = JSON.parse(snapshot); return; }
+function deleteContact(id) {
+  const contact = contacts.find(item => String(item.id) === String(id));
+  if (contact && confirm("Kontakt " + contact.name + " wirklich löschen?")) {
+    contacts = contacts.filter(item => String(item.id) !== String(id));
+    persist();
     render();
-    alert(added + " Tickets importiert" + (inc.length - added ? ", " + (inc.length - added) + " Duplikate übersprungen" : "") + ".");
-  } catch (err) {
-    alert("Import fehlgeschlagen: " + err.message);
-  } finally {
-    e.target.value = "";
   }
 }
 
-/* ---------- Eigenes Profilbild (nur auf diesem Gerät) ---------- */
-
-const SELFK = "petersTicketProfil";
-function showSelf(src) {
-  $("selfImg").hidden = !src;
-  if (src) $("selfImg").src = src; else $("selfImg").removeAttribute("src");
-  $("selfPh").hidden = !!src;
-  $("selfRm").hidden = !src;
-  $("selfChg").textContent = src ? "Bild ändern" : "Bild hinzufügen";
-}
-try {
-  const v = localStorage.getItem(SELFK) || "";
-  showSelf(/^data:image\/jpeg;base64,/.test(v) ? v : "");
-} catch (e) { showSelf(""); }
-$("selfFile").addEventListener("change", async function () {
-  const f = this.files && this.files[0];
-  if (!f) return;
-  try {
-    const d = await shrink(f, 320, 0.8);
-    localStorage.setItem(SELFK, d);
-    showSelf(d);
-  } catch (e) { alert("Das Bild konnte nicht gespeichert werden."); }
-  this.value = "";
-});
-function rmSelf() {
-  try { localStorage.removeItem(SELFK); } catch (e) {}
-  showSelf("");
+function callContact(id) {
+  const contact = contacts.find(item => String(item.id) === String(id));
+  if (!contact || !contact.phone) return;
+  if (confirm("Telefonwähler für " + contact.name + " (" + contact.phone + ") öffnen?")) {
+    window.location.href = "tel:" + contact.phone.replace(/\(0\)/g, "").replace(/[^\d+]/g, "");
+  }
 }
 
-/* ---------- Sync (Firebase, Änderungen werden pro Ticket abgeglichen) ---------- */
+function whatsapp(id) {
+  const contact = contacts.find(item => String(item.id) === String(id));
+  if (!contact || !contact.phone) return;
+  if (!confirm("WhatsApp für " + contact.name + " öffnen?")) return;
 
-const SC = "petersSyncCfg", SM = "petersSyncMeta", SMAIL = "petersSyncMail";
-let cfg = null, meta = {}, fdb = null, col = null, unsub = null;
-try { cfg = JSON.parse(localStorage.getItem(SC) || "null"); } catch (e) {}
-try { meta = JSON.parse(localStorage.getItem(SM) || "{}"); } catch (e) {}
-const saveMeta = () => { try { localStorage.setItem(SM, JSON.stringify(meta)); } catch (e) {} };
-const hs = str => { let h = 5381; for (let i = 0; i < str.length; i++) h = ((h << 5) + h + str.charCodeAt(i)) | 0; return h; };
-const syncItems = () => db.tickets.map(x => ["t", x]).concat(db.plans.map(x => ["p", x]));
+  // Nummern in jedem Format erlaubt: +49…, 0049…, 0170… (Vorwahl wird automatisch ergänzt)
+  let number = contact.phone.replace(/\(0\)/g, "").replace(/[^\d+]/g, "");
+  if (number.startsWith("+")) number = number.slice(1);
+  else if (number.startsWith("00")) number = number.slice(2);
+  else if (number.startsWith("0")) number = DEFAULT_COUNTRY_CODE + number.slice(1);
 
-function setState(txt) {
-  $("syncBtn").textContent = "☁️ Sync: " + txt;
-  $("syncInfo").textContent = cfg ? "Status: " + txt : "Noch nicht eingerichtet. Siehe Anleitung.";
+  number = number.replace(/\D/g, "");
+  if (number) window.open("https://wa.me/" + number, "_blank", "noopener");
 }
 
-// Lokale Änderungen erkennen (neu, geändert, gelöscht) und zum Senden markieren
-function syncLocal() {
-  const seen = new Set();
-  syncItems().forEach(([k, x]) => {
-    seen.add(x.id);
-    const h = hs(JSON.stringify(x)), m = meta[x.id];
-    if (!m || m.h !== h || m.del) meta[x.id] = {h: h, u: Date.now(), p: 1, k: k};
-  });
-  Object.keys(meta).forEach(id => {
-    if (!seen.has(id) && !meta[id].del) meta[id] = {h: 0, u: Date.now(), p: 1, k: meta[id].k, del: true};
-  });
-  saveMeta();
-  pushPending();
+function maps(id) {
+  const contact = contacts.find(item => String(item.id) === String(id));
+  if (!contact) return;
+  const address = [contact.street, contact.postcode, contact.city].filter(Boolean).join(", ");
+  if (address) window.open("https://www.google.com/maps/search/?api=1&query=" + encodeURIComponent(address), "_blank", "noopener");
 }
 
-function pushPending() {
-  if (!col) return;
-  Object.keys(meta).forEach(id => {
-    const m = meta[id];
-    if (!m.p) return;
-    let d = "";
-    if (!m.del) {
-      const f = syncItems().find(([k, x]) => x.id === id);
-      if (!f) return;
-      d = JSON.stringify(f[1]);
+function backup() {
+  let profilePhoto = "";
+  try { profilePhoto = localStorage.getItem(SELF_KEY) || ""; } catch (error) {}
+  const blob = new Blob(
+    [JSON.stringify({format: "PetersAdressbuch", contacts: contacts, profilePhoto: profilePhoto}, null, 2)],
+    {type: "application/json"}
+  );
+  saveBlob(blob, "peters-adressbuch-backup-" + today() + ".json");
+}
+
+function today() {
+  return new Date().toISOString().slice(0, 10);
+}
+
+// Download, der auch in mobilen Browsern (z. B. Opera) zuverlässig startet
+function saveBlob(blob, filename) {
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = filename;
+  link.style.display = "none";
+  document.body.appendChild(link);
+  link.click();
+  setTimeout(() => {
+    link.remove();
+    URL.revokeObjectURL(url);
+  }, 10000);
+}
+
+// CSV-Backup (Semikolon-getrennt, UTF-8 mit BOM, öffnet sich auch in Excel richtig)
+function backupCSV() {
+  if (!contacts.length) {
+    alert("Es gibt noch keine Kontakte zum Sichern.");
+    return;
+  }
+  const header = ["Name", "Firma", "Telefon", "E-Mail", "Straße", "PLZ", "Ort", "Notizen", "Gruppe"];
+  const keys = ["name", "company", "phone", "email", "street", "postcode", "city", "notes", "group"];
+  const cell = value => {
+    const text = String(value || "");
+    return /[";\r\n]/.test(text) ? '"' + text.replace(/"/g, '""') + '"' : text;
+  };
+  const lines = [header.map(cell).join(";")];
+  contacts.forEach(contact => lines.push(keys.map(key =>
+    cell(key === "group" ? (GROUPS[normalizeGroup(contact.group)] || "") : contact[key])
+  ).join(";")));
+
+  const blob = new Blob(["\uFEFF" + lines.join("\r\n")], {type: "text/csv;charset=utf-8"});
+  saveBlob(blob, "peters-adressbuch-backup-" + today() + ".csv");
+}
+
+/* ---------- Foto-Links aus Notizen entfernen ---------- */
+
+// Entfernt Zeilen wie "Photo: https://lh3.googleusercontent.com/..." aus den Notizen
+function cleanNotes(text) {
+  return String(text || "")
+    .split(/\r?\n/)
+    .filter(line => {
+      const l = line.trim();
+      if (/^(photo|foto)\s*:\s*https?:\/\/\S+$/i.test(l)) return false;
+      if (/googleusercontent\.com\/contacts\//i.test(l)) return false;
+      return true;
+    })
+    .join("\n")
+    .replace(/\n{3,}/g, "\n\n")
+    .trim();
+}
+
+// Bereits importierte Kontakte einmalig aufräumen
+function cleanStoredNotes() {
+  let changed = false;
+  contacts.forEach(contact => {
+    if (!contact.notes) return;
+    const cleaned = cleanNotes(contact.notes);
+    if (cleaned !== contact.notes) {
+      contact.notes = cleaned;
+      changed = true;
     }
-    col.doc(id).set({k: m.k, d: d, upd: m.u, del: !!m.del})
-      .then(() => { if (meta[id] && meta[id].u === m.u) { meta[id].p = 0; saveMeta(); } setState("synchronisiert"); })
-      .catch(e => setState("Fehler: " + (e.code || e.message)));
+  });
+  if (changed) {
+    try { localStorage.setItem(STORAGE_KEY, JSON.stringify(contacts)); } catch (error) {}
+  }
+}
+
+/* ---------- CSV (Google Kontakte) ---------- */
+
+// Text aus Datei lesen: UTF-8 (mit/ohne BOM), UTF-16 oder Windows-1252
+async function readTextFile(file) {
+  const bytes = new Uint8Array(await file.arrayBuffer());
+  if (bytes[0] === 0xFF && bytes[1] === 0xFE) return new TextDecoder("utf-16le").decode(bytes.subarray(2));
+  if (bytes[0] === 0xFE && bytes[1] === 0xFF) return new TextDecoder("utf-16be").decode(bytes.subarray(2));
+  try {
+    return new TextDecoder("utf-8", {fatal: true}).decode(bytes).replace(/^\uFEFF/, "");
+  } catch (error) {
+    return new TextDecoder("windows-1252").decode(bytes);
+  }
+}
+
+function detectDelimiter(text) {
+  // Trennzeichen aus der Kopfzeile bestimmen (nur außerhalb von Anführungszeichen)
+  const counts = {",": 0, ";": 0, "\t": 0};
+  let inQuotes = false;
+  for (let i = 0; i < text.length; i++) {
+    const ch = text[i];
+    if (ch === '"') inQuotes = !inQuotes;
+    else if (!inQuotes) {
+      if (ch === "\n" || ch === "\r") break;
+      if (ch in counts) counts[ch]++;
+    }
+  }
+  return Object.keys(counts).sort((a, b) => counts[b] - counts[a])[0];
+}
+
+// Vollständiger CSV-Parser: Anführungszeichen, Kommas und Zeilenumbrüche in Feldern, "" als Escape
+function parseCSV(text, delimiter) {
+  const rows = [];
+  let row = [];
+  let field = "";
+  let inQuotes = false;
+
+  for (let i = 0; i < text.length; i++) {
+    const ch = text[i];
+    if (inQuotes) {
+      if (ch === '"') {
+        if (text[i + 1] === '"') { field += '"'; i++; }
+        else inQuotes = false;
+      } else {
+        field += ch;
+      }
+    } else if (ch === '"') {
+      inQuotes = true;
+    } else if (ch === delimiter) {
+      row.push(field);
+      field = "";
+    } else if (ch === "\n" || ch === "\r") {
+      if (ch === "\r" && text[i + 1] === "\n") i++;
+      row.push(field);
+      field = "";
+      rows.push(row);
+      row = [];
+    } else {
+      field += ch;
+    }
+  }
+  if (field !== "" || row.length) {
+    row.push(field);
+    rows.push(row);
+  }
+  return rows.filter(r => r.some(cell => String(cell).trim() !== ""));
+}
+
+function csvToContacts(text) {
+  const rows = parseCSV(text, detectDelimiter(text));
+  if (rows.length < 2) throw new Error("Die CSV-Datei enthält keine Kontakte.");
+
+  // Spalten über die Kopfzeile zuordnen, nicht über die Position
+  const index = {};
+  rows[0].forEach((title, i) => {
+    const key = String(title).replace(/^\uFEFF/, "").trim().toLowerCase();
+    if (key && !(key in index)) index[key] = i;
+  });
+
+  const known = ["first name","given name","last name","family name","name","vorname","nachname",
+                 "phone 1 - value","e-mail 1 - value","address 1 - street","organization name",
+                 "organization 1 - name","telefon","e-mail","email","firma","notizen","notes"];
+  if (!known.some(key => key in index)) {
+    throw new Error("Die Kopfzeile der CSV wurde nicht erkannt. Bitte die Google-Kontakte-Datei im Format „Google CSV“ exportieren.");
+  }
+
+  const flat = s => String(s || "").replace(/\s*[\r\n]+\s*/g, ", ").trim();
+  const split = s => String(s || "").split(":::").map(v => v.trim()).filter(Boolean);
+
+  return rows.slice(1).map(row => {
+    const get = name => {
+      const i = index[name];
+      return i === undefined ? "" : String(row[i] || "").trim();
+    };
+    const pick = names => {
+      for (const name of names) {
+        const value = get(name);
+        if (value) return value;
+      }
+      return "";
+    };
+
+    // Name
+    const parts = [
+      pick(["name prefix"]),
+      pick(["first name","given name","vorname"]),
+      pick(["middle name","additional name"]),
+      pick(["last name","family name","nachname"]),
+      pick(["name suffix"])
+    ].filter(Boolean);
+    let name = parts.join(" ");
+    if (!name) name = pick(["name","file as","nickname"]);
+
+    // Firma und Position
+    const company = pick(["organization name","organization 1 - name","organization","company","firma"]);
+    const jobTitle = pick(["organization title","organization 1 - title"]);
+
+    // Telefonnummern: erste Nummer ins Feld, weitere in die Notizen
+    const phones = [];
+    const emails = [];
+    for (let n = 1; n <= 30; n++) {
+      const pv = "phone " + n + " - value";
+      const ev = "e-mail " + n + " - value";
+      if (!(pv in index) && !(ev in index)) { if (n > 5) break; continue; }
+      const pLabel = get("phone " + n + " - label") || get("phone " + n + " - type");
+      const eLabel = get("e-mail " + n + " - label") || get("e-mail " + n + " - type");
+      split(get(pv)).forEach(v => phones.push({value: v, label: pLabel}));
+      split(get(ev)).forEach(v => emails.push({value: v, label: eLabel}));
+    }
+    if (!phones.length) {
+      const generic = pick(["phone","telefon","mobil","mobile","handy"]);
+      if (generic) phones.push({value: generic, label: ""});
+    }
+    if (!emails.length) {
+      const generic = pick(["e-mail","email","e-mail-adresse"]);
+      if (generic) emails.push({value: generic, label: ""});
+    }
+
+    // Adressen: erste Adresse in die Felder, weitere in die Notizen
+    const addresses = [];
+    for (let n = 1; n <= 10; n++) {
+      const p = "address " + n + " - ";
+      if (!((p + "street") in index) && !((p + "formatted") in index) && !((p + "city") in index)) {
+        if (n > 3) break;
+        continue;
+      }
+      let street = flat(get(p + "street"));
+      const extended = flat(get(p + "extended address"));
+      if (extended) street = street ? street + ", " + extended : extended;
+      const postcode = get(p + "postal code");
+      const city = get(p + "city");
+      const formatted = flat(get(p + "formatted"));
+      if (!street && !postcode && !city && formatted) street = formatted;
+      if (street || postcode || city) addresses.push({street, postcode, city, formatted: formatted || [street, postcode, city].filter(Boolean).join(", ")});
+    }
+    if (!addresses.length) {
+      const street = flat(pick(["straße","strasse","street"]));
+      const postcode = pick(["plz","postleitzahl","postal code"]);
+      const city = pick(["ort","stadt","city"]);
+      if (street || postcode || city) addresses.push({street, postcode, city, formatted: ""});
+    }
+
+    // Notizen
+    const notes = [];
+    const baseNotes = cleanNotes(pick(["notes","notizen"]));
+    if (baseNotes) notes.push(baseNotes);
+    if (jobTitle) notes.push("Position: " + jobTitle);
+    const birthday = pick(["birthday","geburtstag"]);
+    if (birthday) notes.push("Geburtstag: " + birthday);
+    phones.slice(1).forEach(p => notes.push("Weitere Telefonnummer" + (p.label ? " (" + p.label + ")" : "") + ": " + p.value));
+    emails.slice(1).forEach(e => notes.push("Weitere E-Mail" + (e.label ? " (" + e.label + ")" : "") + ": " + e.value));
+    addresses.slice(1).forEach(a => notes.push("Weitere Adresse: " + a.formatted));
+
+    if (!name) name = company || (emails[0] && emails[0].value) || (phones[0] && phones[0].value) || "";
+
+    const main = addresses[0] || {};
+    return {
+      name: name,
+      company: company,
+      phone: phones[0] ? phones[0].value : "",
+      email: emails[0] ? emails[0].value : "",
+      street: main.street || "",
+      postcode: main.postcode || "",
+      city: main.city || "",
+      notes: notes.join("\n"),
+      group: normalizeGroup(pick(["gruppe","group"])) || groupFromLabels(pick(["labels","label"]))
+    };
+  }).filter(c => c.name || c.company || c.phone || c.email || c.street || c.notes);
+}
+
+/* ---------- VCF ---------- */
+
+function vcfToContacts(text) {
+  const unfolded = text.replace(/\r?\n[ \t]/g, "");
+  return unfolded.split(/BEGIN:VCARD/i).slice(1).map(block => {
+    const contact = {};
+    block.split(/END:VCARD/i)[0].split(/\r?\n/).forEach(line => {
+      const idx = line.indexOf(":");
+      if (idx < 0) return;
+      const key = line.slice(0, idx).split(";")[0].toUpperCase();
+      const value = line.slice(idx + 1).replace(/\\n/gi, " ").replace(/\\,/g, ",");
+      if (key === "FN") contact.name = value;
+      if (key === "ORG") contact.company = value.replace(/;/g, " ").trim();
+      if (key === "TEL" && !contact.phone) contact.phone = value;
+      if (key === "EMAIL" && !contact.email) contact.email = value;
+      if (key === "NOTE") contact.notes = value;
+      if (key === "CATEGORIES" && !contact.group) contact.group = groupFromLabels(value);
+      if (key === "ADR" && !contact.street && !contact.city) {
+        const p = value.split(";");
+        contact.street = p[2] || "";
+        contact.city = p[3] || "";
+        contact.postcode = p[5] || "";
+      }
+    });
+    return contact;
   });
 }
 
-function applyRemote(id, r) {
-  const m = meta[id];
-  if (m && m.u >= r.upd) return false;
-  if (r.del) {
-    db.tickets = db.tickets.filter(x => x.id !== id);
-    db.plans = db.plans.filter(x => x.id !== id);
-    meta[id] = {h: 0, u: r.upd, p: 0, k: r.k, del: true};
-    return true;
+/* ---------- Import ---------- */
+
+function normPhone(value) {
+  const digits = String(value || "").replace(/\D/g, "");
+  return digits.length > 9 ? digits.slice(-9) : digits;   // +49 170… und 0170… gelten als gleich
+}
+
+function addContacts(incoming) {
+  const phones = new Set();
+  const emails = new Set();
+  const names = new Set();
+  contacts.forEach(c => {
+    const p = normPhone(c.phone);
+    if (p) phones.add(p);
+    if (c.email) emails.add(c.email.toLowerCase());
+    names.add((c.name || "").toLowerCase() + "|" + (c.company || "").toLowerCase());
+  });
+
+  let added = 0;
+  let skipped = 0;
+  incoming.forEach(raw => {
+    const contact = {
+      id: makeId(),
+      photo: validPhoto(raw.photo) ? raw.photo : "",
+      group: normalizeGroup(raw.group) || ((currentTab === "privat" || currentTab === "arbeit") ? currentTab : "")
+    };
+    fields.forEach(key => contact[key] = String(raw[key] || "").trim());
+    if (!contact.name) contact.name = "Importierter Kontakt";
+
+    const p = normPhone(contact.phone);
+    const e = contact.email.toLowerCase();
+    const n = contact.name.toLowerCase() + "|" + contact.company.toLowerCase();
+    const duplicate = (p && phones.has(p)) || (e && emails.has(e)) || (!p && !e && names.has(n));
+    if (duplicate) { skipped++; return; }
+
+    contacts.push(contact);
+    if (p) phones.add(p);
+    if (e) emails.add(e);
+    names.add(n);
+    added++;
+  });
+  return {added, skipped};
+}
+
+async function importFile(event) {
+  const file = event.target.files && event.target.files[0];
+  if (!file) return;
+
+  try {
+    let incoming = [];
+    let isJson = false;
+
+    if (/\.json$/i.test(file.name)) {
+      const data = JSON.parse(await readTextFile(file));
+      incoming = Array.isArray(data) ? data : data.contacts;
+      if (!Array.isArray(incoming)) throw new Error("Ungültige Backup-Datei");
+      isJson = true;
+      if (!Array.isArray(data) && validPhoto(data.profilePhoto)) {
+        try {
+          if (!localStorage.getItem(SELF_KEY)) {
+            localStorage.setItem(SELF_KEY, data.profilePhoto);
+            loadSelfPhoto();
+          }
+        } catch (error) {}
+      }
+    } else if (/\.csv$/i.test(file.name) || file.type === "text/csv") {
+      incoming = csvToContacts(await readTextFile(file));
+    } else {
+      const text = await readTextFile(file);
+      if (/\.vcf$|\.vcard$/i.test(file.name) || /BEGIN:VCARD/i.test(text)) {
+        incoming = vcfToContacts(text);
+      } else {
+        throw new Error("Bitte ein JSON-Backup, eine Google-CSV oder eine VCF-Datei auswählen.");
+      }
+    }
+
+    if (!incoming.length) throw new Error("Keine Kontakte in der Datei gefunden.");
+    if (!confirm(incoming.length + " Kontakte gefunden. Importieren?")) return;
+
+    const previous = contacts.slice();
+    const result = addContacts(incoming);
+
+    if (!persist()) {
+      contacts = previous;
+      render();
+      return;
+    }
+    render();
+    alert(result.added + " Kontakte importiert" +
+      (result.skipped ? ", " + result.skipped + " Duplikate übersprungen" : "") + ".");
+
+    if (isJson) shrinkStoredPhotos();
+  } catch (error) {
+    alert("Import fehlgeschlagen: " + error.message);
+  } finally {
+    event.target.value = "";
   }
-  let x;
-  try { x = JSON.parse(r.d); } catch (e) { return false; }
-  const list = r.k === "p" ? db.plans : db.tickets, i = list.findIndex(y => y.id === id);
-  if (r.k !== "p") {
-    if (!Array.isArray(x.pl)) x.pl = [];
-    if (!Array.isArray(x.photos)) x.photos = [];
-    db.next = Math.max(db.next, (x.no || 0) + 1);
+}
+
+/* ---------- Gruppen: Tabs, Auswählen, Verschieben ---------- */
+
+function updateTabs() {
+  const names = {"": "Alle", privat: "Privat", arbeit: "Arbeit", none: "Ohne"};
+  const count = g => contacts.filter(c => {
+    const cg = normalizeGroup(c.group);
+    if (g === "none") return !cg;
+    return !g || cg === g;
+  }).length;
+  document.querySelectorAll("#tabs button").forEach(button => {
+    const g = button.dataset.g;
+    button.textContent = names[g] + " (" + count(g) + ")";
+    button.classList.toggle("active", g === currentTab);
+  });
+}
+
+function setTab(group) {
+  currentTab = group;
+  render();
+}
+
+function updateSelInfo() {
+  $("selInfo").textContent = selected.size + (selected.size === 1 ? " Kontakt ausgewählt" : " Kontakte ausgewählt");
+}
+
+function toggleSelect() {
+  selectMode = !selectMode;
+  selected.clear();
+  $("selbar").style.display = selectMode ? "block" : "none";
+  $("selToggle").textContent = selectMode ? "Auswahl beenden" : "☑ Mehrere auswählen & verschieben";
+  render();
+}
+
+function togglePick(id, checked) {
+  if (checked) selected.add(String(id));
+  else selected.delete(String(id));
+  updateSelInfo();
+}
+
+function visibleContacts() {
+  const query = $("search").value.trim().toLocaleLowerCase("de");
+  return contacts.filter(contact => {
+    const g = normalizeGroup(contact.group);
+    if (currentTab === "none" && g) return false;
+    if (currentTab && currentTab !== "none" && g !== currentTab) return false;
+    return fields.some(key => String(contact[key] || "").toLocaleLowerCase("de").includes(query));
+  });
+}
+
+function selectAllVisible() {
+  visibleContacts().forEach(contact => selected.add(String(contact.id)));
+  render();
+}
+
+function setGroupFor(ids, group) {
+  const previous = contacts.map(contact => Object.assign({}, contact));
+  contacts.forEach(contact => {
+    if (ids.has(String(contact.id))) contact.group = group;
+  });
+  if (!persist()) {
+    contacts = previous;
+    return false;
   }
-  if (i >= 0) list[i] = x; else list.push(x);
-  meta[id] = {h: hs(JSON.stringify(x)), u: r.upd, p: 0, k: r.k};
   return true;
 }
 
-function startListen(user) {
-  col = fdb.collection("users").doc(user.uid).collection("items");
-  syncLocal();
-  unsub = col.onSnapshot(snap => {
-    let changed = false;
-    snap.docChanges().forEach(c => { if (c.type !== "removed" && applyRemote(c.doc.id, c.doc.data())) changed = true; });
-    if (changed) {
-      saveMeta();
-      try { localStorage.setItem(KEY, JSON.stringify(db)); } catch (e) {}
-      render();
-      if ($("plan").style.display === "block") renderPlan();
-    }
-    setState(snap.metadata.fromCache ? "offline (lokal)" : "synchronisiert");
-  }, e => setState("Fehler: " + (e.code || e.message)));
+function moveSelected(group) {
+  if (!selected.size) {
+    alert("Bitte zuerst Kontakte auswählen.");
+    return;
+  }
+  if (setGroupFor(selected, group)) selected.clear();
+  render();
 }
 
-const loadScript = src => new Promise((ok, no) => {
-  const el = document.createElement("script");
-  el.src = src; el.onload = ok;
-  el.onerror = () => no(new Error("Firebase konnte nicht geladen werden (kein Internet?)"));
-  document.head.appendChild(el);
+function moveContact(id, group) {
+  setGroupFor(new Set([String(id)]), group);
+  render();
+}
+
+/* ---------- Eigenes Bild unter dem Titel ---------- */
+
+function showSelfPhoto(src) {
+  if (src) {
+    $("selfPhoto").src = src;
+    $("selfPhoto").hidden = false;
+  } else {
+    $("selfPhoto").removeAttribute("src");
+    $("selfPhoto").hidden = true;
+  }
+  $("selfRemove").hidden = !src;
+  $("selfChoose").textContent = src ? "Bild ändern" : "Bild wählen";
+}
+
+function loadSelfPhoto() {
+  let stored = "";
+  try { stored = localStorage.getItem(SELF_KEY) || ""; } catch (error) {}
+  showSelfPhoto(validPhoto(stored) ? stored : "");
+}
+
+function removeSelfPhoto() {
+  try { localStorage.removeItem(SELF_KEY); } catch (error) {}
+  $("selfFile").value = "";
+  showSelfPhoto("");
+}
+
+$("selfFile").addEventListener("change", async function () {
+  const file = this.files && this.files[0];
+  if (!file) return;
+
+  if (!file.type.startsWith("image/")) {
+    alert("Bitte eine Bilddatei auswählen.");
+    this.value = "";
+    return;
+  }
+  if (file.size > PHOTO_MAX_INPUT_MB * 1024 * 1024) {
+    alert("Das Bild ist extrem groß (über " + PHOTO_MAX_INPUT_MB + " MB). Bitte ein anderes Bild wählen.");
+    this.value = "";
+    return;
+  }
+
+  try {
+    const small = await shrinkImage(await readFileAsDataURL(file));
+    localStorage.setItem(SELF_KEY, small);
+    showSelfPhoto(small);
+  } catch (error) {
+    alert("Das Bild konnte nicht gespeichert werden. Bitte als JPG oder PNG versuchen oder ein Backup erstellen und Speicher freigeben.");
+  } finally {
+    this.value = "";
+  }
 });
 
-async function initSync() {
-  if (!cfg || !cfg.apiKey || fdb) { setState(cfg ? "…" : "aus"); return; }
-  try {
-    const B = "https://www.gstatic.com/firebasejs/10.12.2/";
-    await loadScript(B + "firebase-app-compat.js");
-    await Promise.all([loadScript(B + "firebase-auth-compat.js"), loadScript(B + "firebase-firestore-compat.js")]);
-    firebase.initializeApp(cfg);
-    fdb = firebase.firestore();
-    firebase.auth().onAuthStateChanged(u => {
-      if (unsub) { unsub(); unsub = null; }
-      if (u) startListen(u); else { col = null; setState("nicht angemeldet"); }
-    });
-  } catch (e) { setState("offline (lokal)"); }
-}
+/* ---------- Start ---------- */
 
-function openSync() {
-  $("s_mail").value = localStorage.getItem(SMAIL) || "";
-  $("syncInfo").textContent = cfg ? $("syncBtn").textContent.replace("☁️ Sync: ", "Status: ") : "Noch nicht eingerichtet. Siehe Anleitung.";
-  $("syncs").style.display = "block";
-  $("syncs").scrollTop = 0;
-}
-
-async function connectSync() {
-  const c = {};
-  $("s_cfg").value.replace(/(\w+)\s*:\s*["']([^"']*)["']/g, (m, k, v) => { c[k] = v; return m; });
-  if (c.apiKey && c.projectId && (!cfg || cfg.apiKey !== c.apiKey)) {
-    cfg = c;
-    localStorage.setItem(SC, JSON.stringify(c));
-  }
-  if (!cfg || !cfg.apiKey) { alert("Bitte den Block firebaseConfig einfügen."); return; }
-  const mail = $("s_mail").value.trim(), pw = $("s_pw").value;
-  if (!mail || !pw) { alert("Bitte E-Mail und Passwort eingeben."); return; }
-  setState("verbinde …");
-  try {
-    await initSync();
-    if (!fdb) throw new Error("Firebase nicht erreichbar");
-    await firebase.auth().signInWithEmailAndPassword(mail, pw);
-    localStorage.setItem(SMAIL, mail);
-    $("s_pw").value = ""; $("s_cfg").value = "";
-    $("syncs").style.display = "none";
-  } catch (e) {
-    alert("Anmeldung fehlgeschlagen: " + (e.code || e.message));
-    setState("nicht angemeldet");
-  }
-}
-
-function disconnectSync() {
-  if (!confirm("Synchronisierung ausschalten? Die Tickets auf diesem Gerät bleiben erhalten.")) return;
-  try { if (unsub) unsub(); if (window.firebase && firebase.apps.length) firebase.auth().signOut(); } catch (e) {}
-  localStorage.removeItem(SC); localStorage.removeItem(SM);
-  cfg = null; meta = {}; col = null; unsub = null;
-  setState("aus");
-  location.reload();
-}
-
-["q","fStatus","fWerk","fPrio"].forEach(id => $(id).addEventListener("input", render));
-runPlans();
+$("search").addEventListener("input", render);
+cleanStoredNotes();
+loadSelfPhoto();
 render();
-initSync();
-if ("serviceWorker" in navigator) navigator.serviceWorker.register("./sw-tickets.js").catch(() => {});
+shrinkStoredPhotos();
+
+if ("serviceWorker" in navigator) {
+  window.addEventListener("load", () => {
+    navigator.serviceWorker.register("./sw.js")
+      .catch(error => console.error("Offline-Modus:", error));
+  });
+}
 </script>
 </body>
 </html>
