@@ -72,6 +72,9 @@ button.mini{padding:8px 14px;font-size:14px;background:rgba(255,255,255,.15);col
     <button type="button" class="secondary" onclick="$('file').click()">Importieren (CSV / JSON / VCF)</button>
     <input id="file" type="file" accept=".json,.vcf,.vcard,.csv,text/csv" hidden onchange="importFile(event)">
   </div>
+  <div class="row">
+    <button type="button" class="secondary" onclick="removeDuplicates()">Doppelte Kontakte entfernen</button>
+  </div>
 
   <details id="syncBox" style="margin:10px 0">
     <summary style="cursor:pointer;font-weight:700">☁️ Sync (Firebase): <span id="syncState">aus</span></summary>
@@ -151,7 +154,7 @@ button.mini{padding:8px 14px;font-size:14px;background:rgba(255,255,255,.15);col
   <p id="count"><small>Kontakte werden lokal gespeichert.</small></p>
   <section id="contacts"></section>
   <p><small>Die Kontakte bleiben in diesem Browser auf deinem Gerät. Bitte regelmäßig ein Backup erstellen. Das CSV-Backup enthält alle Kontaktdaten, aber keine Fotos. Das JSON-Backup enthält zusätzlich die Fotos und dein Bild.</small></p>
-  <p><small>Version 2026-10-15 (Sync)</small></p>
+  <p><small>Version 2026-10-15b (Sync, Doppelte entfernen)</small></p>
 </main>
 
 <script>
@@ -792,11 +795,38 @@ function vcfToContacts(text) {
   });
 }
 
+/* ---------- Doppelte entfernen ---------- */
+
+function removeDuplicates() {
+  const groups = {};
+  contacts.forEach(c => {
+    const key = (c.name || "").trim().toLowerCase() + "|" + normPhone(c.phone);
+    (groups[key] = groups[key] || []).push(c);
+  });
+  const drop = new Set();
+  Object.keys(groups).forEach(k => {
+    const list = groups[k];
+    if (list.length < 2) return;
+    // Der zuletzt angelegte (bereinigte) Kontakt bleibt, ältere Doppelte fliegen raus
+    list.sort((a, b) => String(a.id).slice(0, 8).localeCompare(String(b.id).slice(0, 8)));
+    list.slice(0, -1).forEach(c => drop.add(String(c.id)));
+  });
+  if (!drop.size) { alert("Keine doppelten Kontakte gefunden."); return; }
+  if (!confirm(drop.size + " doppelte Kontakte gefunden (gleicher Name und gleiche Nummer). Den jeweils älteren entfernen?")) return;
+  const previous = contacts.slice();
+  contacts = contacts.filter(c => !drop.has(String(c.id)));
+  if (!persist()) { contacts = previous; render(); return; }
+  render();
+  alert(drop.size + " doppelte Kontakte entfernt. Jetzt " + contacts.length + " Kontakte.");
+}
+
 /* ---------- Import ---------- */
 
 function normPhone(value) {
-  const digits = String(value || "").replace(/\D/g, "");
-  return digits.length > 9 ? digits.slice(-9) : digits;   // +49 170… und 0170… gelten als gleich
+  let digits = String(value || "").replace(/\D/g, "");
+  if (digits.startsWith("0049")) digits = digits.slice(4);
+  else if (digits.startsWith("49")) digits = digits.slice(2);
+  return digits.replace(/^0+/, "");   // +49 170…, 0049 170… und 0170… gelten als gleich
 }
 
 function addContacts(incoming) {
@@ -995,6 +1025,7 @@ function removeSelfPhoto() {
   try { localStorage.removeItem(SELF_KEY); } catch (error) {}
   $("selfFile").value = "";
   showSelfPhoto("");
+  try { syncLocal(); } catch (e) {}
 }
 
 $("selfFile").addEventListener("change", async function () {
@@ -1016,6 +1047,7 @@ $("selfFile").addEventListener("change", async function () {
     const small = await shrinkImage(await readFileAsDataURL(file));
     localStorage.setItem(SELF_KEY, small);
     showSelfPhoto(small);
+    try { syncLocal(); } catch (e) {}
   } catch (error) {
     alert("Das Bild konnte nicht gespeichert werden. Bitte als JPG oder PNG versuchen oder ein Backup erstellen und Speicher freigeben.");
   } finally {
@@ -1049,8 +1081,12 @@ function syncLocal() {
     if (!m || m.h !== h || m.del) meta[id] = {h: h, u: Date.now(), p: 1};
   });
   Object.keys(meta).forEach(id => {
-    if (!seen.has(id) && !meta[id].del) meta[id] = {h: 0, u: Date.now(), p: 1, del: true};
+    if (id !== "_profil" && !seen.has(id) && !meta[id].del) meta[id] = {h: 0, u: Date.now(), p: 1, del: true};
   });
+  let photo = "";
+  try { photo = localStorage.getItem(SELF_KEY) || ""; } catch (e) {}
+  const ph = hs(photo);
+  if ((photo || meta._profil) && (!meta._profil || meta._profil.h !== ph)) meta._profil = {h: ph, u: Date.now(), p: 1};
   saveMeta();
   pushPending();
 }
@@ -1061,7 +1097,9 @@ function pushPending() {
     const m = meta[id];
     if (!m.p) return;
     let d = "";
-    if (!m.del) {
+    if (id === "_profil") {
+      try { d = localStorage.getItem(SELF_KEY) || ""; } catch (e) {}
+    } else if (!m.del) {
       const c = contacts.find(x => String(x.id) === id);
       if (!c) return;
       d = JSON.stringify(c);
@@ -1075,6 +1113,12 @@ function pushPending() {
 function applyRemote(id, r) {
   const m = meta[id];
   if (m && m.u >= r.upd) return false;
+  if (id === "_profil") {
+    try { if (r.d) localStorage.setItem(SELF_KEY, r.d); else localStorage.removeItem(SELF_KEY); } catch (e) {}
+    meta[id] = {h: hs(r.d || ""), u: r.upd, p: 0};
+    loadSelfPhoto();
+    return true;
+  }
   if (r.del) {
     contacts = contacts.filter(x => String(x.id) !== id);
     meta[id] = {h: 0, u: r.upd, p: 0, del: true};
