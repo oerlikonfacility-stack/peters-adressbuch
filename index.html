@@ -73,6 +73,19 @@ button.mini{padding:8px 14px;font-size:14px;background:rgba(255,255,255,.15);col
     <input id="file" type="file" accept=".json,.vcf,.vcard,.csv,text/csv" hidden onchange="importFile(event)">
   </div>
 
+  <details id="syncBox" style="margin:10px 0">
+    <summary style="cursor:pointer;font-weight:700">☁️ Sync (Firebase): <span id="syncState">aus</span></summary>
+    <p><small>Gleicht deine Kontakte zwischen Handy und PC ab. Nutzt dasselbe Firebase-Konto wie dein Ticketsystem und die Reise-App.</small></p>
+    <div id="syncCfgBox"><label for="s_cfg">Firebase-Konfiguration (nur beim ersten Mal, falls nicht schon bekannt)</label>
+    <textarea id="s_cfg" rows="4" placeholder='const firebaseConfig = { apiKey: "…", authDomain: "…", projectId: "…", appId: "…" };'></textarea></div>
+    <label for="s_mail">E-Mail</label><input id="s_mail" type="email" autocomplete="username">
+    <label for="s_pw">Passwort</label><input id="s_pw" type="password" autocomplete="current-password">
+    <div class="row">
+      <button type="button" onclick="connectSync()">Verbinden</button>
+      <button type="button" class="secondary" onclick="disconnectSync()">Sync ausschalten</button>
+    </div>
+  </details>
+
   <section id="editor">
     <h2 id="formTitle">Neuer Kontakt</h2>
     <input id="id" type="hidden">
@@ -138,7 +151,7 @@ button.mini{padding:8px 14px;font-size:14px;background:rgba(255,255,255,.15);col
   <p id="count"><small>Kontakte werden lokal gespeichert.</small></p>
   <section id="contacts"></section>
   <p><small>Die Kontakte bleiben in diesem Browser auf deinem Gerät. Bitte regelmäßig ein Backup erstellen. Das CSV-Backup enthält alle Kontaktdaten, aber keine Fotos. Das JSON-Backup enthält zusätzlich die Fotos und dein Bild.</small></p>
-  <p><small>Version 2026-10-13b (CSV-Backup, Gruppen)</small></p>
+  <p><small>Version 2026-10-15 (Sync)</small></p>
 </main>
 
 <script>
@@ -195,6 +208,7 @@ try {
 function persist() {
   try {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(contacts));
+    try { syncLocal(); } catch (e) {}
     return true;
   } catch (error) {
     alert("Speichern nicht möglich: Der Browser-Speicher ist voll.\n\nBitte zuerst ein Backup erstellen und dann einige Fotos oder Kontakte löschen.");
@@ -327,7 +341,7 @@ async function shrinkStoredPhotos() {
     }
   }
   if (changed) {
-    try { localStorage.setItem(STORAGE_KEY, JSON.stringify(contacts)); } catch (error) {}
+    try { localStorage.setItem(STORAGE_KEY, JSON.stringify(contacts)); syncLocal(); } catch (error) {}
     render();
   }
 }
@@ -1012,10 +1026,144 @@ $("selfFile").addEventListener("change", async function () {
 /* ---------- Start ---------- */
 
 $("search").addEventListener("input", render);
+/* ---------- Sync (Firebase, pro Kontakt abgeglichen) ---------- */
+
+const SC = "petersSyncCfg", SMAIL = "petersSyncMail", SM = "petersKontakteSyncMeta";
+let cfg = null, meta = {}, fdb = null, col = null, unsub = null;
+try { cfg = JSON.parse(localStorage.getItem(SC) || "null"); } catch (e) {}
+try { meta = JSON.parse(localStorage.getItem(SM) || "{}"); } catch (e) {}
+const saveMeta = () => { try { localStorage.setItem(SM, JSON.stringify(meta)); } catch (e) {} };
+const hs = str => { let h = 5381; for (let i = 0; i < str.length; i++) h = ((h << 5) + h + str.charCodeAt(i)) | 0; return h; };
+
+function setState(txt) {
+  $("syncState").textContent = txt;
+  $("syncCfgBox").style.display = cfg && cfg.apiKey ? "none" : "";
+}
+
+function syncLocal() {
+  const seen = new Set();
+  contacts.forEach(c => {
+    const id = String(c.id);
+    seen.add(id);
+    const h = hs(JSON.stringify(c)), m = meta[id];
+    if (!m || m.h !== h || m.del) meta[id] = {h: h, u: Date.now(), p: 1};
+  });
+  Object.keys(meta).forEach(id => {
+    if (!seen.has(id) && !meta[id].del) meta[id] = {h: 0, u: Date.now(), p: 1, del: true};
+  });
+  saveMeta();
+  pushPending();
+}
+
+function pushPending() {
+  if (!col) return;
+  Object.keys(meta).forEach(id => {
+    const m = meta[id];
+    if (!m.p) return;
+    let d = "";
+    if (!m.del) {
+      const c = contacts.find(x => String(x.id) === id);
+      if (!c) return;
+      d = JSON.stringify(c);
+    }
+    col.doc(id).set({d: d, upd: m.u, del: !!m.del})
+      .then(() => { if (meta[id] && meta[id].u === m.u) { meta[id].p = 0; saveMeta(); } setState("synchronisiert"); })
+      .catch(e => setState("Fehler: " + (e.code || e.message)));
+  });
+}
+
+function applyRemote(id, r) {
+  const m = meta[id];
+  if (m && m.u >= r.upd) return false;
+  if (r.del) {
+    contacts = contacts.filter(x => String(x.id) !== id);
+    meta[id] = {h: 0, u: r.upd, p: 0, del: true};
+    return true;
+  }
+  let c;
+  try { c = JSON.parse(r.d); } catch (e) { return false; }
+  if (!c || c.id === undefined) return false;
+  const i = contacts.findIndex(y => String(y.id) === id);
+  if (i >= 0) contacts[i] = c; else contacts.push(c);
+  meta[id] = {h: hs(JSON.stringify(c)), u: r.upd, p: 0};
+  return true;
+}
+
+function startListen(user) {
+  col = fdb.collection("users").doc(user.uid).collection("kontakte");
+  syncLocal();
+  unsub = col.onSnapshot(snap => {
+    let changed = false;
+    snap.docChanges().forEach(ch => { if (ch.type !== "removed" && applyRemote(ch.doc.id, ch.doc.data())) changed = true; });
+    if (changed) {
+      saveMeta();
+      try { localStorage.setItem(STORAGE_KEY, JSON.stringify(contacts)); } catch (e) {}
+      render();
+    }
+    setState(snap.metadata.fromCache ? "offline (lokal)" : "synchronisiert");
+  }, e => setState("Fehler: " + (e.code || e.message)));
+}
+
+const loadScript = src => new Promise((ok, no) => {
+  const el = document.createElement("script");
+  el.src = src; el.onload = ok;
+  el.onerror = () => no(new Error("Firebase konnte nicht geladen werden (kein Internet?)"));
+  document.head.appendChild(el);
+});
+
+async function initSync() {
+  if (!cfg || !cfg.apiKey || fdb) { setState(cfg && cfg.apiKey ? "…" : "aus"); return; }
+  try {
+    const B = "https://www.gstatic.com/firebasejs/10.12.2/";
+    await loadScript(B + "firebase-app-compat.js");
+    await Promise.all([loadScript(B + "firebase-auth-compat.js"), loadScript(B + "firebase-firestore-compat.js")]);
+    if (!firebase.apps.length) firebase.initializeApp(cfg);
+    fdb = firebase.firestore();
+    firebase.auth().onAuthStateChanged(u => {
+      if (unsub) { unsub(); unsub = null; }
+      if (u) startListen(u); else { col = null; setState("nicht angemeldet"); }
+    });
+  } catch (e) { setState("offline (lokal)"); }
+}
+
+async function connectSync() {
+  const c = {};
+  $("s_cfg").value.replace(/(\w+)\s*:\s*["']([^"']*)["']/g, (m, k, v) => { c[k] = v; return m; });
+  if (c.apiKey && c.projectId && (!cfg || cfg.apiKey !== c.apiKey)) {
+    cfg = c;
+    localStorage.setItem(SC, JSON.stringify(c));
+  }
+  if (!cfg || !cfg.apiKey) { alert("Bitte den Block firebaseConfig einfügen."); return; }
+  const mail = $("s_mail").value.trim(), pw = $("s_pw").value;
+  if (!mail || !pw) { alert("Bitte E-Mail und Passwort eingeben."); return; }
+  setState("verbinde …");
+  try {
+    await initSync();
+    if (!fdb) throw new Error("Firebase nicht erreichbar");
+    await firebase.auth().signInWithEmailAndPassword(mail, pw);
+    localStorage.setItem(SMAIL, mail);
+    $("s_pw").value = ""; $("s_cfg").value = "";
+  } catch (e) {
+    alert("Anmeldung fehlgeschlagen: " + (e.code || e.message));
+    setState("nicht angemeldet");
+  }
+}
+
+function disconnectSync() {
+  try { if (unsub) unsub(); } catch (e) {}
+  localStorage.removeItem(SM);
+  col = null; unsub = null; meta = {};
+  setState("aus");
+  location.reload();
+}
+$("s_mail").value = localStorage.getItem(SMAIL) || "";
+
 cleanStoredNotes();
 loadSelfPhoto();
 render();
 shrinkStoredPhotos();
+setState("aus");
+initSync();
 
 if ("serviceWorker" in navigator) {
   window.addEventListener("load", () => {
